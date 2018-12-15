@@ -85,7 +85,7 @@ class MCTS():
             v: the negative of the value of the current state
         """
         if create_copy:
-            self.game_copy = self.cloneAndRandomize(self.game.b.game)
+            self.game_copy = self.cloneAndRandomize(self.game.game)
 
         s = self.game.stringRepresentation(state)
 

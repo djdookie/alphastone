@@ -5,6 +5,7 @@ from NNet import NNetWrapper as NNet
 import numpy as np
 import random
 from utils import *
+import logging
 
 """
 use this script to play any two agents against each other, or play manually with
@@ -89,6 +90,9 @@ class HumanPlayer():
 
 g = YEET(is_basic=True)
 
+logger = logging.getLogger("fireplace")
+logger.setLevel(logging.WARNING)
+
 # all players
 hp = HumanPlayer(g).play
 rp = RandomPlayer(g).play
@@ -101,15 +105,15 @@ mcts1 = MCTS(g, n1, args)
 a1p = lambda x: mcts1.getActionProb(x, temp=0)
 
 # n2 = NNet(g)
-# n2.load_checkpoint('./tem/', 'best.pth.tar')
+# n2.load_checkpoint('./temp/', 'best.pth.tar')
 # args = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
 # mcts2 = MCTS(g, n2, args)
 # a2p = lambda x: mcts2.getActionProb(x, temp=0)
 
-arena = Arena.Arena(a1p, hp, g)
+arena = Arena.Arena(a1p, rp, g)
 
 if __name__ == '__main__':
-    p1_won, p2_won, draws = arena.playGames(50, verbose=True)
+    p1_won, p2_won, draws = arena.playGames(2, verbose=True)
     print(f'\nResults: P1 {p1_won}, P2 {p2_won}, Draws {draws}')
 
 '''

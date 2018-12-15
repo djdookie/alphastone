@@ -75,7 +75,7 @@ class YEET:
         return game
 
 
-    def getNextState(self, player, action, game_instance=self.game):
+    def getNextState(self, player, action, game_instance):
         """
         Input:
             player: current player (1 or -1)
@@ -102,7 +102,7 @@ class YEET:
             return next_state, -player
 
 
-    def getValidMoves(self, game_instance=self.game):
+    def getValidMoves(self, game_instance):
         """
         Input:
             game_instance: the game object (actual game or deepcopy for MCTS)
@@ -112,6 +112,9 @@ class YEET:
                         moves that are valid from the current game instance and player,
                         0 for invalid moves
         """
+        if game_instance == None:
+            game_instance = self.game
+
         actions = np.zeros((21,18))
         player = game_instance.current_player
         #If the player is being given a choice, return only valid choices
@@ -204,7 +207,7 @@ class YEET:
                 pass
 
 
-    def getGameEnded(self, game_instance=self.game):
+    def getGameEnded(self, game_instance):
         """
         Input:
             game_instance: the game object (actual game or deepcopy for MCTS)
@@ -229,15 +232,18 @@ class YEET:
             return 0.0001
         return 0
 
-    def getState(self, game_instance=self.game):
+    def getState(self, game_instance):
         """
         Args:
             game_instance: the game object (actual game or deepcopy for MCTS)
         return:
-            a 263 length numpy array of features extracted from the
+            a 273 length numpy array of features extracted from the
             supplied game.
         """
-        s = np.zeros(263, dtype=np.int32)
+        if game_instance == None:
+            game_instance = self.game
+
+        s = np.zeros(273, dtype=np.int32)
 
         p1 = game_instance.current_player
         p2 = p1.opponent
@@ -310,7 +316,7 @@ class YEET:
 
         #in hand
 
-        #173-262, your cards in hand
+        #173-272, your cards in hand
         p1_hand = len(p1.hand)
         for j in range(0, 10):
             if j < p1_hand:
@@ -319,15 +325,15 @@ class YEET:
                 # minion y/n, attk, hp, battlecry, div shield, deathrattle, taunt
                 s[i + 1] = 1 if p1.hand[j].type == 4 else 0
                 s[i + 2] = p1.hand[j].atk if s[i + 1] == 1 else 0
-                s[i + 2] = p1.hand[j].health if s[i + 1] == 1 else 0
-                s[i + 3] = p1.hand[j].divine_shield*1 if s[i + 1] == 1 else 0
-                s[i + 4] = p1.hand[j].has_deathrattle*1 if s[i + 1] == 1 else 0
-                s[i + 5] = p1.hand[j].taunt*1 if s[i + 1] == 1 else 0
+                s[i + 3] = p1.hand[j].health if s[i + 1] == 1 else 0
+                s[i + 4] = p1.hand[j].divine_shield*1 if s[i + 1] == 1 else 0
+                s[i + 5] = p1.hand[j].has_deathrattle*1 if s[i + 1] == 1 else 0
+                s[i + 6] = p1.hand[j].taunt*1 if s[i + 1] == 1 else 0
                 # weapon y/n, spell y/n, cost
-                s[i + 6] = 1 if p1.hand[j].type == 7 else 0
-                s[i + 7] = 1 if p1.hand[j].type == 5 else 0
-                s[i + 8] = p1.hand[j].cost
-            i += 9
+                s[i + 7] = 1 if p1.hand[j].type == 7 else 0
+                s[i + 8] = 1 if p1.hand[j].type == 5 else 0
+                s[i + 9] = p1.hand[j].cost
+            i += 10
         return s
 
 

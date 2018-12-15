@@ -48,7 +48,7 @@ class Arena():
                 action = players[curPlayer + 1](current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action), current_game)
             else:
-                pi = players[curPlayer+1](self.game.getState())
+                pi = players[curPlayer+1](self.game.getState(current_game))
                 pi_reshape = np.reshape(pi, (21, 18))
                 action = np.where(pi_reshape==np.max(pi_reshape))
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)

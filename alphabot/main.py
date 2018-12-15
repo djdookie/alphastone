@@ -2,6 +2,7 @@ from Coach import Coach
 from Game import YEET as Game
 from NNet import NNetWrapper as nn
 from utils import dotdict
+import logging 
 
 args = dotdict({
     'numIters': 100,
@@ -14,8 +15,8 @@ args = dotdict({
     'cpuct': 10,
 
     'checkpoint': './temp/',
-    'load_model': True,
-    'load_folder_file': ('./temp/','temp.pth.tar'),
+    'load_model': False,
+    'load_folder_file': ('./models/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
 
 })
@@ -23,6 +24,10 @@ args = dotdict({
 if __name__=="__main__":
 
     g = Game(is_basic=True)
+    # Suppress logging from fireplace for performance reasons
+    logger = logging.getLogger("fireplace")
+    logger.setLevel(logging.WARNING)
+
     nnet = nn(g)
 
     if args.load_model:

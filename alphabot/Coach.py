@@ -45,21 +45,25 @@ class Coach:
 
         while True:
             episodeStep += 1
-            state = self.game.getState(self.curPlayer)
+            #print('---Episode step ' + str(episodeStep) + '---')
+            # state = self.game.getState(self.curPlayer)
+            state = self.game.getState(current_game)
             temp = int(episodeStep < self.args.tempThreshold)
 
             pi = self.mcts.getActionProb(state, temp=temp)
             pi_reshape = np.reshape(pi, (21, 18))
             # sym = self.game.getSymmetries(state, pi)
-            s = self.game.getState()
-            trainExamples.append([s, self.curPlayer, pi, None])
+            # s = self.game.getState(current_game)
+            # trainExamples.append([s, self.curPlayer, pi, None])
+            trainExamples.append([state, self.curPlayer, pi, None])
             # for b,p in sym:
             #     trainExamples.append([b, self.curPlayer, p, None])
             action = np.random.choice(len(pi), p=pi)
             a, b = np.unravel_index(np.ravel(action, np.asarray(pi).shape), pi_reshape.shape)
-            current_game, self.curPlayer = self.game.getNextState(self.curPlayer, (a[0], b[0]))
+            # current_game, self.curPlayer = self.game.getNextState(self.curPlayer, (a[0], b[0]), current_game)
+            next_state, self.curPlayer = self.game.getNextState(self.curPlayer, (a[0], b[0]), current_game)
 
-            r = self.game.getGameEnded()
+            r = self.game.getGameEnded(current_game)
 
             if r!=0:
                 return [(x[0],x[2],r*((-1)**(x[1]!=self.curPlayer))) for x in trainExamples]
