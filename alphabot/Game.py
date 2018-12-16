@@ -7,7 +7,7 @@ from fireplace.exceptions import GameOver, InvalidAction
 from fireplace.game import Game
 from fireplace.player import Player
 from fireplace.utils import random_draft
-from hearthstone.enums import CardClass
+from hearthstone.enums import CardClass, CardSet
 from utils import UnhandledAction
 from fireplace.exceptions import GameOver
 
@@ -49,8 +49,15 @@ class YEET:
 
         cards.db.initialize()
         if self.is_basic: #create quick simple game
-            with open('notbasic.data', 'rb') as f:
-                extra_set = pickle.load(f)
+            # with open('notbasic.data', 'rb') as f:
+            #     extra_set = pickle.load(f)
+            
+            extra_set = cards.filter(
+                card_set = [CardSet.HOF, CardSet.NAXX, CardSet.GVG, CardSet.BRM, CardSet.TGT, CardSet.LOE, CardSet.OG, CardSet.KARA, CardSet.GANGS,
+                            CardSet.UNGORO, CardSet.ICECROWN, CardSet.LOOTAPALOOZA, CardSet.GILNEAS, CardSet.BOOMSDAY, CardSet.TROLL]
+            )
+            # LOOTAPALOOZA = Kobolds and Catacombs # GILNEAS = Witchwood # TROLL = Rasthakan's Rumble
+
             p1 = 6 #priest
             p2 = 7 #rogue
             deck1 = random_draft(CardClass(p1), exclude=extra_set)
