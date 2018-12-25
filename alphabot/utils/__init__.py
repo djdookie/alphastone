@@ -3,7 +3,7 @@
 from .avgmeter import *
 from .exceptions import *
 #from .gameUtils import *
-from .utils import *
+#from .utils import *
 
 # progress bar
 import os, sys

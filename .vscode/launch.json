@@ -8,6 +8,15 @@
             "name": "Python: Current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",
+            "program": "${file}",
+            // "program": "${workspaceFolder}/alphabot/main.py",
+            "cwd": "",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: main.py (Integrated Terminal)",
+            "type": "python",
+            "request": "launch",
             // "program": "${file}",
             "program": "${workspaceFolder}/alphabot/main.py",
             "cwd": "",

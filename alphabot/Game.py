@@ -20,7 +20,7 @@ class YEET:
 
     def __init__(self, is_basic=True):
         self.game = None
-        self.is_basic = True
+        #self.is_basic = True
         self.players = ['player1', 'player2']
         self.is_basic = is_basic
         self.isolate = False
@@ -53,13 +53,15 @@ class YEET:
             #     extra_set = pickle.load(f)
             
             extra_set = cards.filter(
-                card_set = [CardSet.HOF, CardSet.NAXX, CardSet.GVG, CardSet.BRM, CardSet.TGT, CardSet.LOE, CardSet.OG, CardSet.KARA, CardSet.GANGS,
+                card_set = [CardSet.EXPERT1, CardSet.HOF, CardSet.NAXX, CardSet.GVG, CardSet.BRM, CardSet.TGT, CardSet.LOE, CardSet.OG, CardSet.KARA, CardSet.GANGS,
                             CardSet.UNGORO, CardSet.ICECROWN, CardSet.LOOTAPALOOZA, CardSet.GILNEAS, CardSet.BOOMSDAY, CardSet.TROLL]
             )
             # LOOTAPALOOZA = Kobolds and Catacombs # GILNEAS = Witchwood # TROLL = Rasthakan's Rumble
 
             p1 = 6 #priest
             p2 = 7 #rogue
+            # p1 = 4 # mage
+            # p2 = 4 # mage
             deck1 = random_draft(CardClass(p1), exclude=extra_set)
             deck2 = random_draft(CardClass(p2), exclude=extra_set)
         else:
@@ -203,6 +205,7 @@ class YEET:
                 print(a)
                 raise
             except InvalidAction:
+                #print(a)
                 print("Attempted to do something I can't!")
                 player.game.end_turn()
             except IndexError:
@@ -269,7 +272,7 @@ class YEET:
         # 23-24: # of mana crystals for you opponent
         s[i + 3] = p1.max_mana
         s[i + 4] = p2.max_mana
-        # 25: # of crystals still avalible
+        # 25: # of crystals still available
         s[i + 5] = p1.mana
         #26-31: weapon equipped y/n, pow., dur. for you, then opponent
         s[i + 6] = 0 if p1.weapon is None else 1

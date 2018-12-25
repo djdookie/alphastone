@@ -3,7 +3,8 @@ import time
 import numpy as np
 import sys
 sys.path.append('../../')
-from utils import Bar, AverageMeter, dotdict
+from utils import Bar, AverageMeter
+from dotted_dict import DottedDict as dotdict
 
 import torch
 import torch.optim as optim
@@ -16,7 +17,7 @@ args = dotdict({
     'dropout': 0.3,
     'epochs': 10,
     'batch_size': 64,
-    'cuda': torch.cuda.is_available(),
+    'cuda': False,
     'num_channels': 512,
 })
 
