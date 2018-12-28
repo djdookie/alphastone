@@ -12,7 +12,7 @@ args = dotdict({
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'updateThreshold': 0.55,
     'maxlenOfQueue': 200000,
-    'numMCTSSims': 10,
+    'numMCTSSims': 25,
     'arenaCompare': 40,
     'cpuct': 1,             # degree of exploration for upper confidence bound in MCTS.search()
 
@@ -20,11 +20,11 @@ args = dotdict({
     'load_model': False,
     'load_folder_file': ('./models/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
-    'numThreads': 3
+    'numThreads': 2
 })
 
 if __name__=="__main__":
-    freeze_support()
+    #freeze_support()
     g = Game(is_basic=True)
     # Suppress logging from fireplace
     logger = logging.getLogger("fireplace")

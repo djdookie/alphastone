@@ -96,7 +96,7 @@ class HumanPlayer():
         return actionid, idxid
 
 if __name__ == '__main__':
-    freeze_support()
+    #freeze_support()
     g = Game(is_basic=True)
     # Suppress logging from fireplace
     logger = logging.getLogger("fireplace")
@@ -110,14 +110,14 @@ if __name__ == '__main__':
     n1 = NNet(g)
     #n1.nnet.cuda()
     n1.load_checkpoint('./temp/', 'best.pth.tar')
-    argsNN = dotdict({'numMCTSSims': 10, 'cpuct': 1.0})
+    argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)
     a1p = functools.partial(mcts1.getActionProb, temp=0)
 
     n2 = NNet(g)
     n2.load_checkpoint('./temp/', 'best.pth.tar')
-    argsNN = dotdict({'numMCTSSims': 10, 'cpuct': 1.0})
+    argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
     mcts2 = MCTS(g, n2, argsNN)
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)
     a2p = functools.partial(mcts2.getActionProb, temp=0)

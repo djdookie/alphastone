@@ -60,7 +60,7 @@ class Coach:
 
         while True:
             episodeStep += 1
-            #print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
+            print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
             state = self.game.getState(current_game)
             temp = int(episodeStep < self.args.tempThreshold)
 
@@ -123,7 +123,7 @@ class Coach:
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             pmcts = MCTS(self.game, self.pnet, self.args)
             
-            #self.nnet.nnet.cuda() #TODO: Check for issues and if faster!
+            #self.nnet.nnet.cuda() #TODO: Check for issues and if it's faster!
             self.nnet.train(trainExamples)
             #self.nnet.nnet.cpu()
             nmcts = MCTS(self.game, self.nnet, self.args)

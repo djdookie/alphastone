@@ -6,7 +6,7 @@ from fireplace import cards
 from fireplace.exceptions import GameOver, InvalidAction
 from fireplace.game import Game
 from fireplace.player import Player
-from fireplace.utils import random_draft
+from fireplace.utils import random_draft, roguebasic_draft
 from hearthstone.enums import CardClass, CardSet
 from utils import UnhandledAction
 from fireplace.exceptions import GameOver
@@ -63,8 +63,10 @@ class YEET:
             p2 = 7 #rogue
             # p1 = 4 # mage
             # p2 = 4 # mage
-            deck1 = random_draft(CardClass(p1), exclude=extra_set)
-            deck2 = random_draft(CardClass(p2), exclude=extra_set)
+            # deck1 = random_draft(CardClass(p1), exclude=extra_set)
+            # deck2 = random_draft(CardClass(p2), exclude=extra_set)
+            deck1 = roguebasic_draft() # use same shuffled rogue AI basic decks for now
+            deck2 = roguebasic_draft()
         else:
             p1 = random.randint(1, 9)
             p2 = random.randint(1, 9)
