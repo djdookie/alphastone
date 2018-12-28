@@ -6,10 +6,13 @@ from utils import Bar, AverageMeter
 import time, os, sys
 from pickle import Pickler, Unpickler
 from random import shuffle
-import multiprocessing as mp
+#from multiprocessing import Pool, current_process
 #import threading as th
 import copy
 import logging
+from multiprocessing import current_process
+from concurrent.futures import ProcessPoolExecutor
+import tqdm
 
 
 class Coach:
@@ -26,7 +29,7 @@ class Coach:
         self.trainExamplesHistory = []    # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False # can be overridden in loadTrainExamples()
 
-    def executeEpisode(self, output):
+    def executeEpisode(self, x):
         """
         This function executes one episode of self-play, starting with player 1.
         As the game is played, each turn is added as a training example to
@@ -54,7 +57,7 @@ class Coach:
 
         while True:
             episodeStep += 1
-            print('---Episode step ' + str(episodeStep) + '--- ' + mp.current_process().name) #os.getpid())
+            print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
             # state = self.game.getState(self.curPlayer)
             state = game.getState(current_game)
             temp = int(episodeStep < self.args.tempThreshold)
@@ -75,9 +78,9 @@ class Coach:
             r = game.getGameEnded(current_game)
 
             if r!=0:
-                #return [(x[0],x[2],r*((-1)**(x[1]!=self.curPlayer))) for x in trainExamples]
-                output.put([(x[0],x[2],r*((-1)**(x[1]!=curPlayer))) for x in trainExamples])
-                return
+                return [(x[0],x[2],r*((-1)**(x[1]!=curPlayer))) for x in trainExamples]
+                #output.put([(x[0],x[2],r*((-1)**(x[1]!=curPlayer))) for x in trainExamples])
+                #return
 
     def learn(self):
         """
@@ -94,38 +97,13 @@ class Coach:
             # examples of the iteration
             if not self.skipFirstSelfPlay or i>1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
-                # Define an output queue
-                output = mp.Queue()
-
-                eps_time = AverageMeter()
-                bar = Bar('Self Play', max=self.args.numEps)
-                end = time.time()
-    
-                for eps in range(self.args.numEps):
+ 
+                with ProcessPoolExecutor(self.args.numThreads) as executor:
                     #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree
-                    #if __name__ == 'Coach':
-                    #mp.freeze_support()
                     # Setup a list of processes that we want to run
-                    processes = [mp.Process(target=self.executeEpisode, args=(output,)) for x in range(2)]
-                    #processes = [th.Thread(target=self.executeEpisode, args=(output,)) for x in range(2)]
-                    # Run processes
-                    for p in processes:
-                        p.start()
-                    # Get process results from the output queue
-                    iterationTrainExamples += [output.get() for p in processes]
-                    #iterationTrainExamples += self.executeEpisode()
-                    # Wait for all processes to terminate
-                    for p in processes:
-                        p.join()
-                    # TODO: Don't wait for finished processes, start new ones instead after getting their results! Keep x processes alive until numEps is reached!
+                    results = tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps)
 
-                    # bookkeeping + plot progress
-                    eps_time.update(time.time() - end)
-                    end = time.time()
-                    bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=self.args.numEps, et=eps_time.avg,
-                                                                                                               total=bar.elapsed_td, eta=bar.eta_td)
-                    bar.next()
-                bar.finish()
+                iterationTrainExamples += [r for r in results]
 
                 # save the iteration examples to the history 
                 self.trainExamplesHistory.append(iterationTrainExamples)

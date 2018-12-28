@@ -130,6 +130,7 @@ class DQN(nn.Module):
         v = F.relu(self.v_bn1(self.v_conv1(x))) #feed resnet into value head
         v = v.view(-1, 4*265)
         v = F.relu(self.v_fc1(v))
-        v = F.tanh(self.v_fc2(v))   
+        #v = F.tanh(self.v_fc2(v))   
+        v = torch.tanh(self.v_fc2(v))   
 
         return pi, v

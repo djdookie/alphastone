@@ -20,7 +20,7 @@ args = dotdict({
     'load_model': False,
     'load_folder_file': ('./models/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
-    'numThreads': 4,
+    'numThreads': 2,
 
 })
 
