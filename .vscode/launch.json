@@ -21,7 +21,8 @@
             // "program": "${file}",
             "program": "${workspaceFolder}/alphabot/main.py",
             "cwd": "",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "subProcess": true
         },
         {
             "name": "Python: Attach",

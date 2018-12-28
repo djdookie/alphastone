@@ -60,7 +60,7 @@ class Coach:
 
         while True:
             episodeStep += 1
-            print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
+            #print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
             state = self.game.getState(current_game)
             temp = int(episodeStep < self.args.tempThreshold)
 
@@ -98,9 +98,11 @@ class Coach:
                 with ProcessPoolExecutor(self.args.numThreads) as executor:
                     #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree
                     # Setup a list of processes that we want to run
-                    results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
+                    #results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
+                    for result in list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
+                        iterationTrainExamples += result
 
-                iterationTrainExamples += [r for r in results]
+                #iterationTrainExamples = [r for r in results]
 
                 # save the iteration examples to the history 
                 self.trainExamplesHistory.append(iterationTrainExamples)

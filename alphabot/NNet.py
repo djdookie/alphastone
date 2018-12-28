@@ -16,7 +16,7 @@ args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
     'epochs': 10,
-    'batch_size': 64,
+    'batch_size': 32,
     'cuda': False,
     'num_channels': 512,
 })
@@ -44,6 +44,7 @@ class NNetWrapper():
             end = time.time()
 
             bar = Bar('Training Net', max=int(len(examples)/args.batch_size))
+            if (int(len(examples)/args.batch_size) < 1): print("PROBLEM: Batchsize bigger than number of examples!")
             batch_idx = 0
 
             while batch_idx < int(len(examples)/args.batch_size):
