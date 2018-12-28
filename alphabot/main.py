@@ -8,7 +8,7 @@ import multiprocessing as mp
 
 args = dotdict({
     'numIters': 100,
-    'numEps': 4,
+    'numEps': 2,
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'updateThreshold': 0.55,
     'maxlenOfQueue': 200000,
@@ -20,8 +20,7 @@ args = dotdict({
     'load_model': False,
     'load_folder_file': ('./models/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
-    'numThreads': 2,
-
+    'numThreads': 2
 })
 
 if __name__=="__main__":

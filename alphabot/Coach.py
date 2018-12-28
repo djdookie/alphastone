@@ -13,6 +13,7 @@ import logging
 from multiprocessing import current_process
 from concurrent.futures import ProcessPoolExecutor
 import tqdm
+import functools
 
 
 class Coach:
@@ -101,7 +102,7 @@ class Coach:
                 with ProcessPoolExecutor(self.args.numThreads) as executor:
                     #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree
                     # Setup a list of processes that we want to run
-                    results = tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps)
+                    results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
 
                 iterationTrainExamples += [r for r in results]
 
@@ -126,15 +127,19 @@ class Coach:
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             pmcts = MCTS(self.game, self.pnet, self.args)
             
+            self.nnet.nnet.cuda() #TODO: Prüfen!
             self.nnet.train(trainExamples)
+            self.nnet.nnet.cpu()
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             print('PITTING AGAINST PREVIOUS VERSION')
             # arena = Arena(lambda x: np.where(x==np.max(pmcts.getActionProb(x, temp=0))),
             #               lambda x: np.where(x==np.max(nmcts.getActionProb(x, temp=0))), self.game)
-            arena = Arena(lambda x: pmcts.getActionProb(x, temp=0),
-                          lambda x: nmcts.getActionProb(x, temp=0), self.game)
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
+            # arena = Arena(lambda x: pmcts.getActionProb(x, temp=0),
+            #               lambda x: nmcts.getActionProb(x, temp=0), self.game)
+            arena = Arena(functools.partial(pmcts.getActionProb, temp=0),
+                          functools.partial(nmcts.getActionProb, temp=0), self.game)
+            pwins, nwins, draws = arena.playGames(self.args.arenaCompare, self.args.numThreads)
 
             print('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
             if pwins+nwins > 0 and float(nwins)/(pwins+nwins) < self.args.updateThreshold:

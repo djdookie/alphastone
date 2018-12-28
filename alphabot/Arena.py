@@ -2,6 +2,9 @@ from utils import Bar, AverageMeter
 import numpy as np
 from types import *
 import time
+from concurrent.futures import ProcessPoolExecutor
+import tqdm
+
 
 class Arena():
     """
@@ -19,12 +22,15 @@ class Arena():
         see othello/OthelloPlayers.py for an example. See pit.py for pitting
         human players/other baselines with each other.
         """
+        logger = logging.getLogger("fireplace")
+        logger.setLevel(logging.WARNING) #TODO: Prüfen!
+
         self.player1 = player1
         self.player2 = player2
         self.game = game
         self.display = display
 
-    def playGame(self, verbose=False):
+    def playGame(self, x, verbose=False):
         """
         Executes one episode of a game.
 
@@ -60,7 +66,7 @@ class Arena():
             print(" Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(current_game)))
         return self.game.getGameEnded(current_game)
 
-    def playGames(self, num, verbose=False):
+    def playGames(self, num, numThreads, verbose=False):
         """
         Plays num games in which player1 starts num/2 games and player2 starts
         num/2 games.
@@ -70,18 +76,23 @@ class Arena():
             twoWon: games won by player2
             draws:  games won by nobody
         """
-        eps_time = AverageMeter()
-        bar = Bar('Arena.playGames', max=num)
-        end = time.time()
-        eps = 0
-        maxeps = int(num)
+        # eps_time = AverageMeter()
+        # bar = Bar('Arena.playGames', max=num)
+        # end = time.time()
+        # eps = 0
+        # maxeps = int(num)
 
-        num = int(num/2)
+        #num = int(num/2)
+        halfNum = int(num/2)
         oneWon = 0
         twoWon = 0
         draws = 0
-        for _ in range(num):
-            gameResult = self.playGame(verbose=verbose)
+        #for _ in range(num):
+        with ProcessPoolExecutor(numThreads) as executor:
+            results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
+
+        #gameResult = self.playGame(verbose=verbose)
+        for gameResult in results:
             if gameResult==1:
                 oneWon+=1
             elif gameResult==-1:
@@ -89,17 +100,21 @@ class Arena():
             else:
                 draws+=1
             # bookkeeping + plot progress
-            eps += 1
-            eps_time.update(time.time() - end)
-            end = time.time()
-            bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=maxeps, et=eps_time.avg,
-                                                                                                       total=bar.elapsed_td, eta=bar.eta_td)
-            bar.next()
+            # eps += 1
+            # eps_time.update(time.time() - end)
+            # end = time.time()
+            # bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=maxeps, et=eps_time.avg,
+            #                                                                                            total=bar.elapsed_td, eta=bar.eta_td)
+            # bar.next()
 
         self.player1, self.player2 = self.player2, self.player1
         
-        for _ in range(num):
-            gameResult = self.playGame(verbose=verbose)
+        #for _ in range(num):
+        with ProcessPoolExecutor(numThreads) as executor:
+            results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
+
+        #gameResult = self.playGame(verbose=verbose)
+        for gameResult in results:
             if gameResult==-1:
                 oneWon+=1                
             elif gameResult==1:
@@ -107,13 +122,13 @@ class Arena():
             else:
                 draws+=1
             # bookkeeping + plot progress
-            eps += 1
-            eps_time.update(time.time() - end)
-            end = time.time()
-            bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=num, et=eps_time.avg,
-                                                                                                       total=bar.elapsed_td, eta=bar.eta_td)
-            bar.next()
+        #     eps += 1
+        #     eps_time.update(time.time() - end)
+        #     end = time.time()
+        #     bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=num, et=eps_time.avg,
+        #                                                                                                total=bar.elapsed_td, eta=bar.eta_td)
+        #     bar.next()
             
-        bar.finish()
+        # bar.finish()
 
         return oneWon, twoWon, draws
