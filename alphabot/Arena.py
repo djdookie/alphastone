@@ -4,6 +4,7 @@ from types import *
 import time
 from concurrent.futures import ProcessPoolExecutor
 import tqdm
+import logging
 
 
 class Arena():
@@ -22,9 +23,6 @@ class Arena():
         see othello/OthelloPlayers.py for an example. See pit.py for pitting
         human players/other baselines with each other.
         """
-        logger = logging.getLogger("fireplace")
-        logger.setLevel(logging.WARNING) #TODO: Prüfen!
-
         self.player1 = player1
         self.player2 = player2
         self.game = game
@@ -40,9 +38,12 @@ class Arena():
             or
                 draw result returned from the game that is neither 1, -1, nor 0.
         """
+        logger = logging.getLogger("fireplace")
+        logger.setLevel(logging.WARNING)
         players = [self.player2, None, self.player1]
         curPlayer = 1
         current_game = self.game.getInitGame()
+        #print(id(self.game))
         it = 0
         while not current_game.ended or current_game.turn > 180:
             it+=1
@@ -76,6 +77,8 @@ class Arena():
             twoWon: games won by player2
             draws:  games won by nobody
         """
+        # logger = logging.getLogger("fireplace")
+        # logger.setLevel(logging.WARNING)
         # eps_time = AverageMeter()
         # bar = Bar('Arena.playGames', max=num)
         # end = time.time()

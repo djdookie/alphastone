@@ -26,7 +26,7 @@ class Coach:
         self.nnet = nnet
         self.pnet = self.nnet.__class__(self.game)  # the competitor network
         self.args = args
-        #self.mcts = MCTS(self.game, self.nnet, self.args)
+        self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []    # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False # can be overridden in loadTrainExamples()
 
@@ -49,39 +49,35 @@ class Coach:
         logger = logging.getLogger("fireplace")
         logger.setLevel(logging.WARNING)
         trainExamples = []
-        game = copy.deepcopy(self.game)
-        current_game = game.getInitGame()
-        mcts = MCTS(game, self.nnet, self.args)
-        #print(id(game))
-        curPlayer = 1 if f'{current_game.current_player}' == 'Player1' else -1
+        #print(id(self.game))
+        #game = copy.deepcopy(self.game)
+        current_game = self.game.getInitGame()
+        #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree -> not needed since we get a copy of self.mcts in this child process, and MCTS itself uses a deep clone of this copy
+        #curPlayer = 1 if f'{current_game.current_player}' == 'Player1' else -1
+        self.curPlayer = 1 if f'{current_game.current_player}' == 'Player1' else -1
+        #print(id(self.curPlayer))
         episodeStep = 0
 
         while True:
             episodeStep += 1
-            print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
-            # state = self.game.getState(self.curPlayer)
-            state = game.getState(current_game)
+            #print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
+            state = self.game.getState(current_game)
             temp = int(episodeStep < self.args.tempThreshold)
 
-            pi = mcts.getActionProb(state, temp=temp)
+            pi = self.mcts.getActionProb(state, temp=temp)
             pi_reshape = np.reshape(pi, (21, 18))
             # sym = self.game.getSymmetries(state, pi)
-            # s = self.game.getState(current_game)
-            # trainExamples.append([s, self.curPlayer, pi, None])
-            trainExamples.append([state, curPlayer, pi, None])
+            trainExamples.append([state, self.curPlayer, pi, None])
             # for b,p in sym:
             #     trainExamples.append([b, self.curPlayer, p, None])
             action = np.random.choice(len(pi), p=pi)
             a, b = np.unravel_index(np.ravel(action, np.asarray(pi).shape), pi_reshape.shape)
-            # current_game, self.curPlayer = self.game.getNextState(self.curPlayer, (a[0], b[0]), current_game)
-            next_state, curPlayer = game.getNextState(curPlayer, (a[0], b[0]), current_game)
+            next_state, self.curPlayer = self.game.getNextState(self.curPlayer, (a[0], b[0]), current_game)
 
-            r = game.getGameEnded(current_game)
+            r = self.game.getGameEnded(current_game)
 
             if r!=0:
-                return [(x[0],x[2],r*((-1)**(x[1]!=curPlayer))) for x in trainExamples]
-                #output.put([(x[0],x[2],r*((-1)**(x[1]!=curPlayer))) for x in trainExamples])
-                #return
+                return [(x[0],x[2],r*((-1)**(x[1]!=self.curPlayer))) for x in trainExamples]
 
     def learn(self):
         """
@@ -127,9 +123,9 @@ class Coach:
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             pmcts = MCTS(self.game, self.pnet, self.args)
             
-            self.nnet.nnet.cuda() #TODO: Prüfen!
+            #self.nnet.nnet.cuda() #TODO: Check for issues and if faster!
             self.nnet.train(trainExamples)
-            self.nnet.nnet.cpu()
+            #self.nnet.nnet.cpu()
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             print('PITTING AGAINST PREVIOUS VERSION')
@@ -139,7 +135,7 @@ class Coach:
             #               lambda x: nmcts.getActionProb(x, temp=0), self.game)
             arena = Arena(functools.partial(pmcts.getActionProb, temp=0),
                           functools.partial(nmcts.getActionProb, temp=0), self.game)
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare, self.args.numThreads)
+            pwins, nwins, draws = arena.playGames(self.args.arenaCompare, self.args.numThreads, verbose=False)
 
             print('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
             if pwins+nwins > 0 and float(nwins)/(pwins+nwins) < self.args.updateThreshold:

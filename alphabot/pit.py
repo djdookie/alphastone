@@ -1,6 +1,6 @@
 import Arena
 from MCTS import MCTS
-from Game import YEET
+from Game import YEET as Game
 from NNet import NNetWrapper as NNet
 from dotted_dict import DottedDict as dotdict
 import numpy as np
@@ -8,9 +8,10 @@ import random
 from utils import *
 import logging
 import functools
+from multiprocessing import freeze_support
 
 args = dotdict({
-    'numGames': 2,
+    'numGames': 4,
     'numThreads': 2
 })
 
@@ -94,35 +95,35 @@ class HumanPlayer():
 
         return actionid, idxid
 
-
-g = YEET(is_basic=True)
-
-logger = logging.getLogger("fireplace")
-logger.setLevel(logging.WARNING)
-
-# all players
-hp = HumanPlayer(g).play
-rp = RandomPlayer(g).play
-
-# nnet players
-n1 = NNet(g)
-#n1.nnet.cuda()
-n1.load_checkpoint('./temp/', 'best.pth.tar')
-argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
-mcts1 = MCTS(g, n1, argsNN)
-#a1p = lambda x: mcts1.getActionProb(x, temp=0)
-a1p = functools.partial(mcts1.getActionProb, temp=0)
-
-n2 = NNet(g)
-n2.load_checkpoint('./temp/', 'best.pth.tar')
-argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
-mcts2 = MCTS(g, n2, argsNN)
-#a2p = lambda x: mcts2.getActionProb(x, temp=0)
-a2p = functools.partial(mcts2.getActionProb, temp=0)
-
-arena = Arena.Arena(a1p, a2p, g)
-
 if __name__ == '__main__':
+    freeze_support()
+    g = Game(is_basic=True)
+    # Suppress logging from fireplace
+    logger = logging.getLogger("fireplace")
+    logger.setLevel(logging.WARNING)
+
+    # all players
+    hp = HumanPlayer(g).play
+    rp = RandomPlayer(g).play
+
+    # nnet players
+    n1 = NNet(g)
+    #n1.nnet.cuda()
+    n1.load_checkpoint('./temp/', 'best.pth.tar')
+    argsNN = dotdict({'numMCTSSims': 10, 'cpuct': 1.0})
+    mcts1 = MCTS(g, n1, argsNN)
+    #a1p = lambda x: mcts1.getActionProb(x, temp=0)
+    a1p = functools.partial(mcts1.getActionProb, temp=0)
+
+    n2 = NNet(g)
+    n2.load_checkpoint('./temp/', 'best.pth.tar')
+    argsNN = dotdict({'numMCTSSims': 10, 'cpuct': 1.0})
+    mcts2 = MCTS(g, n2, argsNN)
+    #a2p = lambda x: mcts2.getActionProb(x, temp=0)
+    a2p = functools.partial(mcts2.getActionProb, temp=0)
+
+    arena = Arena.Arena(a1p, a2p, g)
+
     p1_won, p2_won, draws = arena.playGames(args.numGames, args.numThreads, verbose=False)
     print(f'\nResults: P1 {p1_won}, P2 {p2_won}, Draws {draws}')
 
