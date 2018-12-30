@@ -10,6 +10,7 @@ from random import shuffle
 #import threading as th
 import copy
 import logging
+import multiprocessing as mp
 from multiprocessing import current_process
 from multiprocessing.managers import BaseManager
 from concurrent.futures import ProcessPoolExecutor
@@ -31,14 +32,6 @@ class Coach:
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []    # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False # can be overridden in loadTrainExamples()
-        
-        if self.args.remoteTraining:
-            QueueManager.register('job_queue')
-            QueueManager.register('result_queue')
-            m = QueueManager(address=('localhost', 50000), authkey=b'thisismysecret')
-            m.connect()
-            self.job_queue = m.job_queue()
-            self.result_queue = m.result_queue()
 
     def executeEpisode(self, x):
         """
@@ -134,11 +127,13 @@ class Coach:
             self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             pmcts = MCTS(self.game, self.pnet, self.args)
-            
+
             if self.args.remoteTraining:
+                #if not self.queue_manager:
+                job_queue, result_queue = self.initializeConnection()
                 # send job, train new network remotely, wait for result, load new network (!)
-                self.sendJob(trainExamples)
-                results = self.receiveResults()
+                self.sendJob(job_queue, trainExamples)
+                results = self.receiveResults(result_queue)
                 if results['finished'] == True:
                     self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             else:
@@ -165,14 +160,23 @@ class Coach:
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')                
 
-    def sendJob(self, trainExamples):
+    def initializeConnection(self):
+        QueueManager.register('job_queue')
+        QueueManager.register('result_queue')
+        queue_manager = QueueManager(address=('localhost', 50000), authkey=b'thisismysecret')
+        queue_manager.connect()
+        job_queue = queue_manager.job_queue()
+        result_queue = queue_manager.result_queue()
+        return job_queue, result_queue
+
+    def sendJob(self, queue, trainExamples):
         print("sending...")
         job = {"examples" : trainExamples}
-        self.job_queue.put(job)
+        queue.put(job)
 
-    def receiveResults(self):
+    def receiveResults(self, queue):
         print("receiving...")
-        result = self.result_queue.get()
+        result = queue.get()
         return result
 
     def getCheckpointFile(self, iteration):

@@ -8,12 +8,12 @@ from multiprocessing import freeze_support
 
 args = dotdict({
     'numIters': 100,
-    'numEps': 100,
+    'numEps': 200,
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
-    'updateThreshold': 0.55,
+    'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
     'numMCTSSims': 25,
-    'arenaCompare': 20,
+    'arenaCompare': 40,
     'cpuct': 1,             # degree of exploration for upper confidence bound in MCTS.search()
 
     'checkpoint': './temp/',
