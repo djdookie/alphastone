@@ -58,7 +58,7 @@ class YEET:
             )
             # LOOTAPALOOZA = Kobolds and Catacombs # GILNEAS = Witchwood # TROLL = Rasthakan's Rumble
 
-            #p1 = 6 #priest
+            # p1 = 6 #priest
             p1 = 7 #rogue
             p2 = 7 #rogue
             # p1 = 4 # mage
@@ -208,8 +208,8 @@ class YEET:
                 print(a)
                 raise
             except InvalidAction:
-                #print(a)
                 print("Attempted to do something I can't!")
+                print(a)
                 player.game.end_turn()
             except IndexError:
                 try:

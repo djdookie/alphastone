@@ -8,19 +8,20 @@ from multiprocessing import freeze_support
 
 args = dotdict({
     'numIters': 100,
-    'numEps': 4,
+    'numEps': 100,
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'updateThreshold': 0.55,
     'maxlenOfQueue': 200000,
     'numMCTSSims': 25,
-    'arenaCompare': 40,
+    'arenaCompare': 20,
     'cpuct': 1,             # degree of exploration for upper confidence bound in MCTS.search()
 
     'checkpoint': './temp/',
-    'load_model': False,
-    'load_folder_file': ('./models/','best.pth.tar'),
+    'load_model': True,
+    'load_folder_file': ('./temp/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
-    'numThreads': 2
+    'numThreads': 2,
+    'remoteTraining' : True
 })
 
 if __name__=="__main__":

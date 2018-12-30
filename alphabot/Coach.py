@@ -11,10 +11,12 @@ from random import shuffle
 import copy
 import logging
 from multiprocessing import current_process
+from multiprocessing.managers import BaseManager
 from concurrent.futures import ProcessPoolExecutor
 import tqdm
 import functools
 
+class QueueManager(BaseManager): pass
 
 class Coach:
     """
@@ -29,6 +31,14 @@ class Coach:
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []    # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False # can be overridden in loadTrainExamples()
+        
+        if self.args.remoteTraining:
+            QueueManager.register('job_queue')
+            QueueManager.register('result_queue')
+            m = QueueManager(address=('localhost', 50000), authkey=b'thisismysecret')
+            m.connect()
+            self.job_queue = m.job_queue()
+            self.result_queue = m.result_queue()
 
     def executeEpisode(self, x):
         """
@@ -125,9 +135,16 @@ class Coach:
             self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
             pmcts = MCTS(self.game, self.pnet, self.args)
             
-            #self.nnet.nnet.cuda() #TODO: Check for issues and if it's faster!
-            self.nnet.train(trainExamples)
-            #self.nnet.nnet.cpu()
+            if self.args.remoteTraining:
+                # send job, train new network remotely, wait for result, load new network (!)
+                self.sendJob(trainExamples)
+                results = self.receiveResults()
+                if results['finished'] == True:
+                    self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
+            else:
+                # train network locally
+                self.nnet.train(trainExamples)
+
             nmcts = MCTS(self.game, self.nnet, self.args)
 
             print('PITTING AGAINST PREVIOUS VERSION')
@@ -147,6 +164,16 @@ class Coach:
                 print('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
                 self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')                
+
+    def sendJob(self, trainExamples):
+        print("sending...")
+        job = {"examples" : trainExamples}
+        self.job_queue.put(job)
+
+    def receiveResults(self):
+        print("receiving...")
+        result = self.result_queue.get()
+        return result
 
     def getCheckpointFile(self, iteration):
         return 'checkpoint_' + str(iteration) + '.pth.tar'

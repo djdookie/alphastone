@@ -15,8 +15,8 @@ from alphanet import DQN as nnet
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
-    'epochs': 10,
-    'batch_size': 32,
+    'epochs': 10,       # best 25
+    'batch_size': 128,  # best 128
     'cuda': False,
     'num_channels': 512,
 })
