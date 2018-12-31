@@ -8,7 +8,7 @@ from dotted_dict import DottedDict as dotdict
 
 import torch
 import torch.optim as optim
-from torch.autograd import Variable
+# from torch.autograd import Variable
 
 from alphanet import DQN as nnet
 
@@ -57,7 +57,7 @@ class NNetWrapper():
                 # predict
                 if args.cuda:
                     states, target_pis, target_vs = states.contiguous().cuda(), target_pis.contiguous().cuda(), target_vs.contiguous().cuda()
-                states, target_pis, target_vs = Variable(states), Variable(target_pis), Variable(target_vs)
+                #states, target_pis, target_vs = Variable(states), Variable(target_pis), Variable(target_vs)
 
                 # measure data loading time
                 data_time.update(time.time() - end)
@@ -107,12 +107,13 @@ class NNetWrapper():
         # preparing input
         state = torch.FloatTensor(state.astype(np.float64)).unsqueeze(0).unsqueeze(0)
         if args.cuda: state = state.contiguous().cuda()
-        with torch.no_grad():
-            state = Variable(state)
+        # with torch.no_grad():
+        #     state = Variable(state)
         # state = state.view(1, self.board_x, self.board_y)
 
         self.nnet.eval()
-        pi, v = self.nnet(state)
+        with torch.no_grad():
+            pi, v = self.nnet(state)
 
         #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
