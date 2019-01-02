@@ -81,15 +81,17 @@ class ResBlock(nn.Module):
 class DQN(nn.Module):
     def __init__(self, args):
 
-        self.layers = [16, 32, 64, 128, 256]
+        #self.layers = [16, 32, 64, 128, 256]
+        #self.layers = [32, 32, 64, 64, 128, 128, 256, 256]
+        self.layers = [64, 64, 128, 128, 256, 256, 512, 512]
         #self.state_size = 273
         self.args = args
 
         super().__init__()
         #first conv layer (input as state, feed into res layers)
-        self.convx = nn.Conv1d(1, 16, #append last three turns onto input as 3rd dim
+        self.convx = nn.Conv1d(1, 64, #append last three turns onto input as 3rd dim
             kernel_size=3, padding=1)
-        self.bnx = nn.BatchNorm1d(16)
+        self.bnx = nn.BatchNorm1d(64)
 
         #residual layers (10)
         self.layers1 = nn.ModuleList([BasicBlock(self.layers[i], self.layers[i+1])
@@ -100,16 +102,16 @@ class DQN(nn.Module):
             for i in range(len(self.layers) - 1)])
 
         #policy head (output as action probabilities (size of actions))
-        self.pi_conv1 = nn.Conv1d(256, 2, kernel_size=1)
+        self.pi_conv1 = nn.Conv1d(512, 2, kernel_size=1)
         self.pi_bn1 = nn.BatchNorm1d(2)
-        self.pi_fc1 = nn.Linear(2*265, 21*18)
+        self.pi_fc1 = nn.Linear(2*259, 21*18)
         # self.pi_fc2 = nn.Linear(18, 18)
         self.pi_conv2 = nn.Conv1d(21, 21, kernel_size=1, stride=1)
 
         #value head (output as state value [-1,1])
-        self.v_conv1 = nn.Conv1d(256, 4, kernel_size=1)
+        self.v_conv1 = nn.Conv1d(512, 4, kernel_size=1)
         self.v_bn1 = nn.BatchNorm1d(4)
-        self.v_fc1 = nn.Linear(4*265, 64)
+        self.v_fc1 = nn.Linear(4*259, 64)
         self.v_fc2 = nn.Linear(64, 1)
 
     def forward(self, state_input):
@@ -121,14 +123,14 @@ class DQN(nn.Module):
 
         #action policy head (action probabilities)
         pi = F.relu(self.pi_bn1(self.pi_conv1(x))) #feed resnet into policy head
-        pi = pi.view(-1, 2*265)
+        pi = pi.view(-1, 2*259)
         pi = F.relu(self.pi_fc1(pi))
         pi = pi.view(-1, 21, 18)
         pi = F.log_softmax(self.pi_conv2(pi), dim=1)
 
         #value head (score of board state)
         v = F.relu(self.v_bn1(self.v_conv1(x))) #feed resnet into value head
-        v = v.view(-1, 4*265)
+        v = v.view(-1, 4*259)
         v = F.relu(self.v_fc1(v))
         #v = F.tanh(self.v_fc2(v))   
         v = torch.tanh(self.v_fc2(v))   

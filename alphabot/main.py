@@ -8,7 +8,7 @@ from multiprocessing import freeze_support
 
 args = dotdict({
     'numIters': 100,
-    'numEps': 200,
+    'numEps': 100,
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
@@ -31,7 +31,7 @@ if __name__=="__main__":
     logger = logging.getLogger("fireplace")
     logger.setLevel(logging.WARNING)
 
-    nnet = nn(g)
+    nnet = nn()
 
     if args.load_model:
         nnet.load_checkpoint(args.load_folder_file[0], args.load_folder_file[1])

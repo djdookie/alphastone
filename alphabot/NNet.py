@@ -18,12 +18,12 @@ args = dotdict({
     'epochs': 10,       # best 25
     'batch_size': 128,  # best 128
     'cuda': False,
-    'num_channels': 512,
+    # 'num_channels': 512,
 })
 
 class NNetWrapper():
-    def __init__(self, game):
-        self.nnet = nnet(game, args)
+    def __init__(self):
+        self.nnet = nnet(args)
 
         if args.cuda:
             self.nnet.cuda()

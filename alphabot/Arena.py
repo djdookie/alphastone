@@ -55,7 +55,7 @@ class Arena():
                 action = players[curPlayer + 1](current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action), current_game)
             else:
-                pi = players[curPlayer+1](self.game.getState(current_game))
+                pi = players[curPlayer+1](self.game.getState(current_game))     # call partial function MCTS.getActionProb(currentState) for current active player
                 pi_reshape = np.reshape(pi, (21, 18))
                 action = np.where(pi_reshape==np.max(pi_reshape))
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)
@@ -110,6 +110,8 @@ class Arena():
             #                                                                                            total=bar.elapsed_td, eta=bar.eta_td)
             # bar.next()
 
+        # show intermediate result
+        print('P1/P2 WINS : %d / %d ; DRAWS : %d' % (oneWon, twoWon, draws))
         self.player1, self.player2 = self.player2, self.player1
         
         #for _ in range(num):

@@ -19,7 +19,7 @@ class YEET:
     """
 
     def __init__(self, is_basic=True):
-        self.game = None
+        self.game = None        # Fireplace game instance
         #self.is_basic = True
         self.players = ['player1', 'player2']
         self.is_basic = is_basic
@@ -98,8 +98,8 @@ class YEET:
             next_state: state after applying action
             next_player: player who plays in the next turn (should be -player if the action is end turn)
         """
-        if game_instance == None:
-            game_instance = self.game
+        # if game_instance == None:
+        #     game_instance = self.game
 
         try:
             self.performAction(action, game_instance)
@@ -124,8 +124,8 @@ class YEET:
                         moves that are valid from the current game instance and player,
                         0 for invalid moves
         """
-        if game_instance == None:
-            game_instance = self.game
+        # if game_instance == None:
+        #     game_instance = self.game
 
         actions = np.zeros((21,18))
         player = game_instance.current_player
@@ -229,8 +229,8 @@ class YEET:
             r: 0 if game has not ended. 1 if starting player won, -1 if player lost,
                small non-zero value for draw.
         """
-        if game_instance == None:
-            game_instance = self.game
+        # if game_instance == None:
+        #     game_instance = self.game
 
         p1 = game_instance.player_to_start
 
@@ -253,8 +253,8 @@ class YEET:
             a 273 length numpy array of features extracted from the
             supplied game.
         """
-        if game_instance == None:
-            game_instance = self.game
+        # if game_instance == None:
+        #     game_instance = self.game
 
         s = np.zeros(273, dtype=np.int32)
 

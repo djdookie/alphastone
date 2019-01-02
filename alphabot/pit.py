@@ -11,8 +11,8 @@ import functools
 from multiprocessing import freeze_support
 
 args = dotdict({
-    'numGames': 4,
-    'numThreads': 2
+    'numGames': 4,     # 40
+    'numThreads': 2     # 2
 })
 
 """
@@ -24,7 +24,7 @@ class RandomPlayer():
         self.game = game
 
     def play(self, game_instance):
-        agent = game_instance.current_player
+        # agent = game_instance.current_player
         choices = np.argwhere(self.game.getValidMoves(game_instance) == 1)
         return random.choice(choices)
 
@@ -107,17 +107,17 @@ if __name__ == '__main__':
     rp = RandomPlayer(g).play
 
     # nnet players
-    n1 = NNet(g)
+    n1 = NNet()
     #n1.nnet.cuda()
-    n1.load_checkpoint('./temp/', 'best.pth.tar')
-    argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
+    n1.load_checkpoint('./temp/', 'temp.pth.tar')           # newest network
+    argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)
     a1p = functools.partial(mcts1.getActionProb, temp=0)
 
-    n2 = NNet(g)
+    n2 = NNet()
     n2.load_checkpoint('./temp/', 'best.pth.tar')
-    argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
+    argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts2 = MCTS(g, n2, argsNN)
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)
     a2p = functools.partial(mcts2.getActionProb, temp=0)

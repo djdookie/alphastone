@@ -27,7 +27,7 @@ class Coach:
     def __init__(self, game, nnet, args):
         self.game = game
         self.nnet = nnet
-        self.pnet = self.nnet.__class__(self.game)  # the competitor network
+        self.pnet = self.nnet.__class__()  # the competitor network
         self.args = args
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []    # history of examples from args.numItersForTrainExamplesHistory latest iterations
@@ -135,7 +135,7 @@ class Coach:
                 self.sendJob(job_queue, trainExamples)
                 results = self.receiveResults(result_queue)
                 if results['finished'] == True:
-                    self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
+                    self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='remote.pth.tar')
             else:
                 # train network locally
                 self.nnet.train(trainExamples)
@@ -147,9 +147,9 @@ class Coach:
             #               lambda x: np.where(x==np.max(nmcts.getActionProb(x, temp=0))), self.game)
             # arena = Arena(lambda x: pmcts.getActionProb(x, temp=0),
             #               lambda x: nmcts.getActionProb(x, temp=0), self.game)
-            arena = Arena(functools.partial(pmcts.getActionProb, temp=0),
-                          functools.partial(nmcts.getActionProb, temp=0), self.game)
-            pwins, nwins, draws = arena.playGames(self.args.arenaCompare, self.args.numThreads, verbose=False)
+            arena = Arena(functools.partial(nmcts.getActionProb, temp=0),
+                          functools.partial(pmcts.getActionProb, temp=0), self.game)
+            nwins, pwins, draws = arena.playGames(self.args.arenaCompare, self.args.numThreads, verbose=False)
 
             print('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
             if pwins+nwins > 0 and float(nwins)/(pwins+nwins) < self.args.updateThreshold:
