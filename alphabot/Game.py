@@ -82,7 +82,7 @@ class YEET:
             cards_to_mulligan = random.sample(player.choice.cards, 0)
             player.choice.choose(*cards_to_mulligan)
 
-        game.player_to_start = game.current_player
+        #game.player_to_start = game.current_player      # obsolete?
         self.game = game
         return game
 
@@ -220,25 +220,60 @@ class YEET:
                 pass
 
 
-    def getGameEnded(self, game_instance):
+    # def getGameEnded(self, game_instance):
+    #     """
+    #     Input:
+    #         game_instance: the game object (actual game or deepcopy for MCTS)
+
+    #     Returns:
+    #         r: 0 if game has not ended. 1 if starting player won, -1 if player lost,
+    #            small non-zero value for draw.
+    #     """
+    #     # if game_instance == None:
+    #     #     game_instance = self.game
+
+    #     p1 = game_instance.player_to_start
+
+    #     if p1.playstate == 4:
+    #         return 1
+    #     elif p1.playstate == 5:
+    #         return -1
+    #     elif p1.playstate == 6:
+    #         return 0.0001
+    #     elif game_instance.turn > 180:
+    #         game_instance.ended = True
+    #         return 0.0001
+    #     return 0
+
+    def getGameEnded(self, game_instance, curPlayer):
         """
         Input:
             game_instance: the game object (actual game or deepcopy for MCTS)
+            curPlayer: the player to check for
 
         Returns:
-            r: 0 if game has not ended. 1 if starting player won, -1 if player lost,
+            r: 0 if game has not ended. 1 if given player won, -1 if given player lost,
                small non-zero value for draw.
         """
         # if game_instance == None:
         #     game_instance = self.game
 
-        p1 = game_instance.player_to_start
+        if curPlayer == 1:
+            p = game_instance.players[0]
+        elif curPlayer == -1:
+            p = game_instance.players[1]
 
-        if p1.playstate == 4:
+        if p.playstate == 1:
+            # still playing, early return
+            return 0
+        if p.playstate == 4:
+            # player 1 won
             return 1
-        elif p1.playstate == 5:
+        elif p.playstate == 5:
+            # player 1 lost
             return -1
-        elif p1.playstate == 6:
+        elif p.playstate == 6:
+            # draw
             return 0.0001
         elif game_instance.turn > 180:
             game_instance.ended = True

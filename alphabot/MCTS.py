@@ -90,7 +90,7 @@ class MCTS():
         s = self.game.stringRepresentation(state)
 
         if s not in self.Es:
-            self.Es[s] = self.game.getGameEnded(self.game_copy)
+            self.Es[s] = self.game.getGameEnded(self.game_copy, 1)      # TODO: check if 1 or current_player is correct!
         if self.game_copy.ended or self.game_copy.turn > 180:
             # terminal node
             return -self.Es[s]

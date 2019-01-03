@@ -49,8 +49,8 @@ class Coach:
                            pi is the MCTS informed policy vector, v is +1 if
                            the player eventually won the game, else -1.
         """
-        logger = logging.getLogger("fireplace")
-        logger.setLevel(logging.WARNING)
+        # logger = logging.getLogger("fireplace")
+        # logger.setLevel(logging.WARNING)
         trainExamples = []
         #print(id(self.game))
         #game = copy.deepcopy(self.game)
@@ -77,7 +77,7 @@ class Coach:
             a, b = np.unravel_index(np.ravel(action, np.asarray(pi).shape), pi_reshape.shape)
             next_state, self.curPlayer = self.game.getNextState(self.curPlayer, (a[0], b[0]), current_game)
 
-            r = self.game.getGameEnded(current_game)
+            r = self.game.getGameEnded(current_game, self.curPlayer)    # returns 0 if game has not ended, 1 if curPlayer won, -1 if curPlayer lost
 
             if r!=0:
                 return [(x[0],x[2],r*((-1)**(x[1]!=self.curPlayer))) for x in trainExamples]

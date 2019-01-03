@@ -38,12 +38,14 @@ class Arena():
             or
                 draw result returned from the game that is neither 1, -1, nor 0.
         """
+        # Suppress logging from fireplace
         logger = logging.getLogger("fireplace")
         logger.setLevel(logging.WARNING)
         players = [self.player2, None, self.player1]
         curPlayer = 1
         current_game = self.game.getInitGame()
         #print(id(self.game))
+        #print('\r\nStarting player: ' + current_game.current_player.name + ' ' + str(current_game.current_player.hero))
         it = 0
         while not current_game.ended or current_game.turn > 180:
             it+=1
@@ -64,13 +66,13 @@ class Arena():
         #     print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
         #     self.display(board)
         if verbose:
-            print(" Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(current_game)))
-        return self.game.getGameEnded(current_game)
+            print(" Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(current_game, curPlayer)))
+        return self.game.getGameEnded(current_game, curPlayer)     # returns 1 if STARTING player won, -1 else!
 
     def playGames(self, num, numThreads, verbose=False):
         """
         Plays num games in which player1 starts num/2 games and player2 starts
-        num/2 games.
+        num/2 games.    #TODO: Not necessary to switch sides because fireplace decides randomly who starts by tossing a coin
 
         Returns:
             oneWon: games won by player1
