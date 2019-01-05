@@ -65,10 +65,12 @@ class Coach:
         while True:
             episodeStep += 1
             #print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
-            state = self.game.getState(current_game)
+            state = self.game.getState(current_game)                    # state is from the current player's perspective
             temp = int(episodeStep < self.args.tempThreshold)
 
-            pi = self.mcts.getActionProb(state, temp=temp)
+            # TODO: No MCTS reset? Should work because player switch leads to new mirror state and info in tree could possibly be reused. Otherwise starting a new tree could speed things up here (faster lookups through smaller mcts lists)!
+            pi = self.mcts.getActionProb(state, temp=temp)              # pi is from the current player's perspective
+            # print(self.mcts)
             pi_reshape = np.reshape(pi, (21, 18))
             # sym = self.game.getSymmetries(state, pi)
             trainExamples.append([state, self.curPlayer, pi, None])

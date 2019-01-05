@@ -1,6 +1,7 @@
 import random
 import numpy as np
 import pickle
+import copy
 
 from fireplace import cards
 from fireplace.exceptions import GameOver, InvalidAction
@@ -425,3 +426,20 @@ class YEET:
                          Required by MCTS for hashing.
         """
         return state.tostring()
+
+    def cloneAndRandomize(self, game):
+        """ Create a deep clone of this game state, randomizing any information not visible to the specified observer player.
+        """
+        game_copy = copy.deepcopy(game)
+        enemy = game_copy.current_player.opponent
+        random.shuffle(enemy.hand)                          # Why shuffle? Could be more performant without
+        random.shuffle(enemy.deck)                          # Why shuffle? Could be more performant without
+        # for idx, card in enumerate(enemy.hand):
+        #     if card.id == 'GAME_005':
+        #         coin = enemy.hand.pop(idx)
+        #
+        # combined = enemy.hand + enemy.deck
+        # random.shuffle(combined)
+        # enemy.hand, enemy.deck = combined[:len(enemy.hand)], combined[len(enemy.hand):]
+        # enemy.hand.append(coin)
+        return game_copy

@@ -1,6 +1,5 @@
 import math
 import numpy as np
-import copy
 import random
 from fireplace.exceptions import GameOver, InvalidAction
 EPS = 1e-8
@@ -32,7 +31,10 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         for i in range(self.args.numMCTSSims):
-            self.search(state, create_copy=True)
+            # print('\r\n'), print(i)
+            #self.search(state, create_copy=True)
+            game_copy = self.game.cloneAndRandomize(self.game.game)
+            self.search(state, game_copy)
 
         s = self.game.stringRepresentation(state)
 
@@ -46,24 +48,7 @@ class MCTS():
         probs = [x/float(sum(counts)) for x in counts]
         return probs
 
-    def cloneAndRandomize(self, game):
-        """ Create a deep clone of this game state, randomizing any information not visible to the specified observer player.
-        """
-        game_copy = copy.deepcopy(game)
-        enemy = game_copy.current_player.opponent
-        random.shuffle(enemy.hand)                          # Why shuffle? Could be more performant without
-        random.shuffle(enemy.deck)                          # Why shuffle? Could be more performant without
-        # for idx, card in enumerate(enemy.hand):
-        #     if card.id == 'GAME_005':
-        #         coin = enemy.hand.pop(idx)
-        #
-        # combined = enemy.hand + enemy.deck
-        # random.shuffle(combined)
-        # enemy.hand, enemy.deck = combined[:len(enemy.hand)], combined[len(enemy.hand):]
-        # enemy.hand.append(coin)
-        return game_copy
-
-    def search(self, state, create_copy):
+    def search(self, state, game_copy):
         """
         NEEDS TO RUN ON DEEPCOPY!!!
 
@@ -84,25 +69,29 @@ class MCTS():
         Returns:
             v: the negative of the value of the current state
         """
-        if create_copy:
-            self.game_copy = self.cloneAndRandomize(self.game.game)
+        # if create_copy:
+        #     game_copy = self.cloneAndRandomize(self.game.game)
+        # print(id(game_copy))
 
         s = self.game.stringRepresentation(state)                               # TODO: Accelerate by using one-hot-encoded bit representation?
+        #curPlayer = 1 if game_copy.current_player.name == 'Player1' else -1     # TODO: always start with curPlayer to only reflect self and other player and compute MCTS tree for own perspective
+        curPlayer = 1
 
         if s not in self.Es:
-            self.Es[s] = self.game.getGameEnded(self.game_copy, self.game_copy.current_player)      # TODO: current_player should be correct! Not 1
-        if self.game_copy.ended or self.game_copy.turn > 180:
+            self.Es[s] = self.game.getGameEnded(game_copy, curPlayer)           # TODO: current_player should be correct! Not 1
+        if game_copy.ended or game_copy.turn > 180:
             # terminal node
-            return -self.Es[s]      # TODO not minus?
+            # return -self.Es[s]
+            return self.Es[s]       # return game result for current player, 1 if he won, -1 if he lost. 0 if not ended.
 
         if s not in self.Ps:
-            # leaf node
-            self.Ps[s], v = self.nnet.predict(state)
-            valids = self.game.getValidMoves(self.game_copy)                    # get valid moves for game_copy.current_player
-            self.Ps[s] = self.Ps[s]*valids      # masking invalid moves
+            # leaf node first visit
+            self.Ps[s], v = self.nnet.predict(state)        # let neural network predict action vector P and state value v
+            valids = self.game.getValidMoves(game_copy)     # get valid moves for game_copy.current_player
+            self.Ps[s] = self.Ps[s]*valids                  # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
-                self.Ps[s] /= sum_Ps_s    # renormalize
+                self.Ps[s] /= sum_Ps_s                      # renormalize
             else:
                 # if all valid moves were masked make all valid moves equally probable
                 
@@ -114,8 +103,10 @@ class MCTS():
 
             self.Vs[s] = valids
             self.Ns[s] = 0
-            return -v
+            # return -v
+            return v * curPlayer        # if the value is predicted for the opponent (-1), invert it
 
+        # no leaf node first visit, no terminal node 
         valids = self.Vs[s]
         cur_best = -float('inf')
         best_act = -1
@@ -135,20 +126,23 @@ class MCTS():
 
         a = best_act
 
-        next_s, next_player = self.game.getNextState(1, a, self.game_copy)      # TODO: check if 1 is always correct!
-        next_s = self.game.getState(self.game_copy)
-        if not self.game_copy.ended:
-            v = self.search(next_s, create_copy=False) #call recursively
+        next_s, curPlayer = self.game.getNextState(curPlayer, a, game_copy)
+        # next_s = self.game.getState(game_copy)                                # was redundant, happend implicitly in getNextState
+        if not game_copy.ended:
+            # v = self.search(next_s, create_copy=False)                        #call recursively
+            v = self.search(next_s, game_copy)                                  #call recursively
         else:
-            v = -self.Es[s]
+            # v = -self.Es[s]
+            v = self.Es[s]          # TODO: Check if if-else is needed here, or ever reached. do we always have a Es[s] here if we reach it?
 
         if (s,a) in self.Qsa:
             self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v)/(self.Nsa[(s,a)]+1)
             self.Nsa[(s,a)] += 1
-
         else:
             self.Qsa[(s,a)] = v
             self.Nsa[(s,a)] = 1
 
         self.Ns[s] += 1
-        return -v
+        # return -v
+        return v * curPlayer        # if the value is predicted for the opponent (-1), invert it
+        # TODO check if this really works for longer opponent pathes!!!
