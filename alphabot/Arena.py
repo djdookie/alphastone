@@ -42,8 +42,9 @@ class Arena():
         logger = logging.getLogger("fireplace")
         logger.setLevel(logging.WARNING)
         players = [self.player2, None, self.player1]
-        curPlayer = 1
+        # curPlayer = 1
         current_game = self.game.getInitGame()
+        curPlayer = 1 if current_game.current_player.name == 'Player1' else -1
         #print(id(self.game))
         #print('\r\nStarting player: ' + current_game.current_player.name + ' ' + str(current_game.current_player.hero))
         it = 0
@@ -66,8 +67,9 @@ class Arena():
         #     print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
         #     self.display(board)
         if verbose:
-            print(" Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(current_game, curPlayer)))
-        return self.game.getGameEnded(current_game, curPlayer)     # returns 1 if STARTING player won, -1 else!
+            print('\r\n' + str(current_game.players[0].hero) + " vs. " + str(current_game.players[1].hero))
+            print(" Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(current_game, 1)))
+        return self.game.getGameEnded(current_game, 1)     # returns 0 if game has not ended, 1 if player 1 won, -1 if player 1 lost
 
     def playGames(self, num, numThreads, verbose=False):
         """
@@ -114,7 +116,7 @@ class Arena():
 
         # show intermediate result
         print('P1/P2 WINS : %d / %d ; DRAWS : %d' % (oneWon, twoWon, draws))
-        self.player1, self.player2 = self.player2, self.player1
+        self.player1, self.player2 = self.player2, self.player1     # switching sides not really needed since fireplace is randomly assigning sides to players
         
         #for _ in range(num):
         with ProcessPoolExecutor(numThreads) as executor:
@@ -122,9 +124,9 @@ class Arena():
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:
-            if gameResult==-1:
+            if gameResult==1:
                 oneWon+=1                
-            elif gameResult==1:
+            elif gameResult==-1:
                 twoWon+=1
             else:
                 draws+=1

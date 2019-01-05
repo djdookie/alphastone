@@ -51,8 +51,8 @@ class MCTS():
         """
         game_copy = copy.deepcopy(game)
         enemy = game_copy.current_player.opponent
-        random.shuffle(enemy.hand)
-        random.shuffle(enemy.deck)
+        random.shuffle(enemy.hand)                          # Why shuffle? Could be more performant without
+        random.shuffle(enemy.deck)                          # Why shuffle? Could be more performant without
         # for idx, card in enumerate(enemy.hand):
         #     if card.id == 'GAME_005':
         #         coin = enemy.hand.pop(idx)
@@ -87,18 +87,18 @@ class MCTS():
         if create_copy:
             self.game_copy = self.cloneAndRandomize(self.game.game)
 
-        s = self.game.stringRepresentation(state)
+        s = self.game.stringRepresentation(state)                               # TODO: Accelerate by using one-hot-encoded bit representation?
 
         if s not in self.Es:
-            self.Es[s] = self.game.getGameEnded(self.game_copy, 1)      # TODO: check if 1 or current_player is correct!
+            self.Es[s] = self.game.getGameEnded(self.game_copy, self.game_copy.current_player)      # TODO: current_player should be correct! Not 1
         if self.game_copy.ended or self.game_copy.turn > 180:
             # terminal node
-            return -self.Es[s]
+            return -self.Es[s]      # TODO not minus?
 
         if s not in self.Ps:
             # leaf node
             self.Ps[s], v = self.nnet.predict(state)
-            valids = self.game.getValidMoves(self.game_copy)
+            valids = self.game.getValidMoves(self.game_copy)                    # get valid moves for game_copy.current_player
             self.Ps[s] = self.Ps[s]*valids      # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
@@ -135,7 +135,7 @@ class MCTS():
 
         a = best_act
 
-        next_s, next_player = self.game.getNextState(1, a, self.game_copy)
+        next_s, next_player = self.game.getNextState(1, a, self.game_copy)      # TODO: check if 1 is always correct!
         next_s = self.game.getState(self.game_copy)
         if not self.game_copy.ended:
             v = self.search(next_s, create_copy=False) #call recursively

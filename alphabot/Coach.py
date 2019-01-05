@@ -49,15 +49,16 @@ class Coach:
                            pi is the MCTS informed policy vector, v is +1 if
                            the player eventually won the game, else -1.
         """
-        # logger = logging.getLogger("fireplace")
-        # logger.setLevel(logging.WARNING)
+        logger = logging.getLogger("fireplace")
+        logger.setLevel(logging.WARNING)
         trainExamples = []
         #print(id(self.game))
         #game = copy.deepcopy(self.game)
         current_game = self.game.getInitGame()
         #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree -> not needed since we get a copy of self.mcts in this child process, and MCTS itself uses a deep clone of this copy
         #curPlayer = 1 if f'{current_game.current_player}' == 'Player1' else -1
-        self.curPlayer = 1 if f'{current_game.current_player}' == 'Player1' else -1
+        #self.curPlayer = 1 if f'{current_game.current_player}' == 'Player1' else -1
+        self.curPlayer = 1 if current_game.current_player.name == 'Player1' else -1
         #print(id(self.curPlayer))
         episodeStep = 0
 

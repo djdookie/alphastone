@@ -1,0 +1,5 @@
+MCTS leads to InvalidAction exeptions:
+    <Spell ('Deadly Poison')> isn't playable.
+    <Hero ('Valeera Sanguinar')> can't attack <Minion ('Frostwolf Grunt')>.
+    <Hero ('Valeera Sanguinar')> can't attack <Minion ('Northshire Cleric')>.
+    <Hero ('Valeera Sanguinar')> can't attack <Hero ('Anduin Wrynn')>.

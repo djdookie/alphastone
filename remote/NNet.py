@@ -13,12 +13,12 @@ import torch.optim as optim
 from alphanet import DQN as nnet
 
 args = dotdict({
-    'lr': 0.001,
-    'dropout': 0.3,
+    'lr': 0.001,       # 0.001
+    'dropout': 0.3,     # 0.3
     'epochs': 25,       # best 25
     'batch_size': 128,  # best 128
     'cuda': True,
-    'num_channels': 512,
+    # 'num_channels': 512,
 })
 
 class NNetWrapper():

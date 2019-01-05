@@ -110,19 +110,20 @@ if __name__ == '__main__':
     n1 = NNet()
     #n1.nnet.cuda()
     n1.load_checkpoint('./temp/', 'temp.pth.tar')           # newest network
-    argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
+    argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)
     a1p = functools.partial(mcts1.getActionProb, temp=0)
 
     n2 = NNet()
     n2.load_checkpoint('./temp/', 'best.pth.tar')
-    argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
+    argsNN = dotdict({'numMCTSSims': 50, 'cpuct': 1.0})
     mcts2 = MCTS(g, n2, argsNN)
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)
     a2p = functools.partial(mcts2.getActionProb, temp=0)
 
-    arena = Arena.Arena(a1p, a2p, g)
+    #arena = Arena.Arena(a1p, a2p, g)
+    arena = Arena.Arena(rp, rp, g)
 
     p1_won, p2_won, draws = arena.playGames(args.numGames, args.numThreads, verbose=False)
     print(f'\nResults: P1 {p1_won}, P2 {p2_won}, Draws {draws}')

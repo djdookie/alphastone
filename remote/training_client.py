@@ -71,12 +71,15 @@ if __name__=="__main__":
         client.nnet.train(trainExamples)
 
         print("Save new trained neural network")
-        client.nnet.save_checkpoint(folder=client.args.checkpoint, filename='temp.pth.tar')
+        client.nnet.save_checkpoint(folder=client.args.checkpoint, filename='remote.pth.tar')
 
         # buffer = io.BytesIO()
         # torch.save({
         #     'state_dict' : client.nnet.nnet.state_dict()
         # }, buffer)
+
+        # Wait some time
+        time.sleep(5)
 
         result = {"finished" : True}
 

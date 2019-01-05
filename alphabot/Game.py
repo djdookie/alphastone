@@ -203,13 +203,15 @@ class YEET:
                     player.choice.choose(player.choice.cards[a[1]])
                 else:
                     raise UnhandledAction
-            except UnhandledAction:
-                print("Attempted to take an inappropriate action!")
-                print(a)
+            except UnhandledAction as e:
+                print("\r\nAttempted to take an inappropriate action!")
+                # print(a)
+                print(str(e))
                 raise
-            except InvalidAction:
-                print("Attempted to do something I can't!")
-                print(a)
+            except InvalidAction as e:
+                print("\r\nAttempted to do something I can't!")
+                # print(a)
+                print(str(e))
                 player.game.end_turn()
             except IndexError:
                 try:
@@ -245,11 +247,11 @@ class YEET:
     #         return 0.0001
     #     return 0
 
-    def getGameEnded(self, game_instance, curPlayer):
+    def getGameEnded(self, game_instance, player):
         """
         Input:
             game_instance: the game object (actual game or deepcopy for MCTS)
-            curPlayer: the player to check for
+            player: the player to check for
 
         Returns:
             r: 0 if game has not ended. 1 if given player won, -1 if given player lost,
@@ -258,19 +260,21 @@ class YEET:
         # if game_instance == None:
         #     game_instance = self.game
 
-        if curPlayer == 1:
+        if player == 1:
+            # curPlayer is player 1
             p = game_instance.players[0]
-        elif curPlayer == -1:
+        elif player == -1:
+            # curPlayer is player 2
             p = game_instance.players[1]
 
         if p.playstate == 1:
             # still playing, early return
             return 0
         if p.playstate == 4:
-            # player 1 won
+            # given player won
             return 1
         elif p.playstate == 5:
-            # player 1 lost
+            # given player lost
             return -1
         elif p.playstate == 6:
             # draw
