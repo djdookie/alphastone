@@ -114,9 +114,9 @@ class Arena():
             #                                                                                            total=bar.elapsed_td, eta=bar.eta_td)
             # bar.next()
 
-        # show intermediate result
+        # show intermediate results (P1 is agent 1, P2 is agent 2)
         print('P1/P2 WINS : %d / %d ; DRAWS : %d' % (oneWon, twoWon, draws))
-        self.player1, self.player2 = self.player2, self.player1     # switching sides not really needed since fireplace is randomly assigning sides to players
+        self.player1, self.player2 = self.player2, self.player1     # agents switching sides, not game players or heroes
         
         #for _ in range(num):
         with ProcessPoolExecutor(numThreads) as executor:
@@ -124,9 +124,9 @@ class Arena():
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:
-            if gameResult==1:
+            if gameResult==-1:
                 oneWon+=1                
-            elif gameResult==-1:
+            elif gameResult==1:
                 twoWon+=1
             else:
                 draws+=1
