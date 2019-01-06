@@ -62,12 +62,9 @@ class MCTS():
         outcome is propogated up the search path. The values of Ns, Nsa, Qsa are
         updated.
 
-        NOTE: the return values are the negative of the value of the current
-        state. This is done since v is in [-1,1] and if v is the value of a
-        state for the current player, then its value is -v for the other player.
-
         Returns:
-            v: the negative of the value of the current state
+            v: the value of the current state between -1 and 1 (1 means 100% chance for the current player to win).
+                Given by neural network prediction or finding a terminal state (1 if current player wins, 0 if he lost)
         """
         # if create_copy:
         #     game_copy = self.cloneAndRandomize(self.game.game)
@@ -104,7 +101,7 @@ class MCTS():
             self.Vs[s] = valids
             self.Ns[s] = 0
             # return -v
-            return v * curPlayer        # if the value is predicted for the opponent (-1), invert it
+            return v
 
         # no leaf node first visit, no terminal node 
         valids = self.Vs[s]
@@ -128,12 +125,12 @@ class MCTS():
 
         next_s, curPlayer = self.game.getNextState(curPlayer, a, game_copy)
         # next_s = self.game.getState(game_copy)                                # was redundant, happend implicitly in getNextState
-        if not game_copy.ended:
+        # if not game_copy.ended:
             # v = self.search(next_s, create_copy=False)                        #call recursively
-            v = self.search(next_s, game_copy)                                  #call recursively
-        else:
+        v = self.search(next_s, game_copy)                                      #call recursively
+        # else:
             # v = -self.Es[s]
-            v = self.Es[s]          # TODO: Check if if-else is needed here, or ever reached. do we always have a Es[s] here if we reach it?
+            # v = self.Es[s]
 
         if (s,a) in self.Qsa:
             self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v)/(self.Nsa[(s,a)]+1)
@@ -144,5 +141,4 @@ class MCTS():
 
         self.Ns[s] += 1
         # return -v
-        return v * curPlayer        # if the value is predicted for the opponent (-1), invert it
-        # TODO check if this really works for longer opponent pathes!!!
+        return v

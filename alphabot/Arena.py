@@ -81,8 +81,8 @@ class Arena():
             twoWon: games won by player2
             draws:  games won by nobody
         """
-        # logger = logging.getLogger("fireplace")
-        # logger.setLevel(logging.WARNING)
+        logger = logging.getLogger("fireplace")
+        logger.setLevel(logging.WARNING)
         # eps_time = AverageMeter()
         # bar = Bar('Arena.playGames', max=num)
         # end = time.time()
