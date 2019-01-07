@@ -16,6 +16,19 @@ from concurrent.futures import ProcessPoolExecutor
 import tqdm
 import functools
 
+args = dotdict({
+    'numIters': 1000,
+    'numEps': 100,
+    'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
+    'maxlenOfQueue': 200000,
+    'numMCTSSims': 25,      # 25    # TODO: much more sims needed?
+    'cpuct': 2,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
+
+    'modelspath': './models/',
+    'examplespath': './examples/',
+    'numThreads': 2,
+})
+
 class QueueManager(BaseManager): pass
 
 class Coach:
@@ -167,21 +180,6 @@ class Coach:
         modelnumbers = list(map(self.get_modelnumber, files))
         maximum = max(modelnumbers)
         return str(maximum) + ".pth.tar"
-
-args = dotdict({
-    'numIters': 1000,
-    'numEps': 100,
-    'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
-    'updateThreshold': 0.55,
-    'maxlenOfQueue': 200000,
-    'numMCTSSims': 25,      # 25    # TODO: much more sims needed?
-    'cpuct': 2,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
-
-    'modelspath': './models/',
-    'examplespath': './examples/',
-    # 'numItersForTrainExamplesHistory': 100000,      #20
-    'numThreads': 2,
-})
 
 if __name__=="__main__":
     #freeze_support()
