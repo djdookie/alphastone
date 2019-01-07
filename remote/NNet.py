@@ -11,13 +11,14 @@ import torch.optim as optim
 # from torch.autograd import Variable
 
 from alphanet import DQN as nnet
+#from alphanet18 import DQN as nnet
 
 args = dotdict({
     'lr': 0.001,       # 0.001
     'dropout': 0.3,     # 0.3
-    'epochs': 25,       # best 25
+    'epochs': 10,       # best 25
     'batch_size': 128,  # best 128
-    'cuda': True,
+    'cuda': False,
     # 'num_channels': 512,
 })
 

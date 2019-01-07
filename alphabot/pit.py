@@ -11,7 +11,7 @@ import functools
 from multiprocessing import freeze_support
 
 args = dotdict({
-    'numGames': 40,     # 40
+    'numGames': 20,     # 40
     'numThreads': 2     # 2
 })
 
@@ -122,8 +122,8 @@ if __name__ == '__main__':
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)
     a2p = functools.partial(mcts2.getActionProb, temp=0)
 
-    #arena = Arena.Arena(a1p, a2p, g)
-    arena = Arena.Arena(a1p, rp, g)     # define agent 1 and agent 2. Are switched after half of the games. TODO: MCTS tree reset needed between games?
+    # define agent 1 and agent 2. Are switched after half of the games. TODO: MCTS tree reset needed between games?
+    arena = Arena.Arena(a1p, rp, g)
 
     # show final results (P1 is agent 1, P2 is agent 2)
     p1_won, p2_won, draws = arena.playGames(args.numGames, args.numThreads, verbose=False)

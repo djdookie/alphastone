@@ -3,3 +3,116 @@ MCTS leads to InvalidAction exeptions:
     <Hero ('Valeera Sanguinar')> can't attack <Minion ('Frostwolf Grunt')>.
     <Hero ('Valeera Sanguinar')> can't attack <Minion ('Northshire Cleric')>.
     <Hero ('Valeera Sanguinar')> can't attack <Hero ('Anduin Wrynn')>.
+    
+##################
+
+(python36) D:\TfsProj\alphastone\alphabot>python main.py
+Load trainExamples from file
+File with trainExamples found. Read it.
+------ITER 1------
+Checkpoint Directory exists!
+sending...
+receiving...
+PITTING AGAINST PREVIOUS VERSION
+1st half:  65%|¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦?                                                  | 13/20 [35:52<17:23, 149.00s/it]concurrent.futures.process._RemoteTraceback:
+"""
+Traceback (most recent call last):
+  File "D:\TfsProj\alphastone\alphabot\Game.py", line 191, in performAction
+    player.hand[a[0]].play()
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\card.py", line 298, in play
+    raise InvalidAction("%r isn't playable." % (self))
+fireplace.exceptions.InvalidAction: <Spell ('Deadly Poison')> isn't playable.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\TfsProj\alphastone\alphabot\Game.py", line 108, in getNextState
+    self.performAction(action, game_instance)
+  File "D:\TfsProj\alphastone\alphabot\Game.py", line 218, in performAction
+    player.game.end_turn()      # TODO: Find out why we often land here!!!
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 283, in end_turn
+    return self.queue_actions(self, [EndTurn(self.current_player)])
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 199, in queue_actions
+    ret = self.trigger_actions(source, actions)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 222, in trigger_actions
+    ret.append(action.trigger(source))
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\actions.py", line 180, in trigger
+    self.do(source, *args)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\actions.py", line 300, in do
+    source.game._end_turn()
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 289, in _end_turn
+    self.end_turn_cleanup()
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 300, in end_turn_cleanup
+    self.begin_turn(self.current_player.opponent)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 351, in begin_turn
+    super().begin_turn(player)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 303, in begin_turn
+    ret = self.queue_actions(self, [BeginTurn(player)])
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 199, in queue_actions
+    ret = self.trigger_actions(source, actions)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 222, in trigger_actions
+    ret.append(action.trigger(source))
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\actions.py", line 180, in trigger
+    self.do(source, *args)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\actions.py", line 243, in do
+    source._begin_turn(player)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 333, in _begin_turn
+    player.draw()
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\player.py", line 219, in draw
+    ret = self.game.cheat_action(self, [Draw(self) * count])[0]
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 164, in cheat_action
+    return self.trigger(source, actions, event_args=None)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 158, in trigger
+    return self.action_block(source, actions, type, event_args=event_args)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 111, in action_block
+    self.action_end(type, source)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 103, in action_end
+    self.process_deaths()
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 150, in process_deaths
+    self.action_end(type, self)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\fireplace\game.py", line 96, in action_end
+    raise GameOver("The game has ended.")
+fireplace.exceptions.GameOver: The game has ended.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\concurrent\futures\process.py", line 175, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\concurrent\futures\process.py", line 153, in _process_chunk
+    return [fn(*args) for args in chunk]
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\concurrent\futures\process.py", line 153, in <listcomp>
+    return [fn(*args) for args in chunk]
+  File "D:\TfsProj\alphastone\alphabot\Arena.py", line 69, in playGame
+    pi = players[curPlayer+1](self.game.getState(current_game))     # call partial function MCTS.getActionProb(currentState) for current active player
+  File "D:\TfsProj\alphastone\alphabot\MCTS.py", line 37, in getActionProb
+    self.search(state, game_copy)
+  File "D:\TfsProj\alphastone\alphabot\MCTS.py", line 130, in search
+    v = self.search(next_s, game_copy)                                      #call recursively
+  File "D:\TfsProj\alphastone\alphabot\MCTS.py", line 126, in search
+    next_s, curPlayer = self.game.getNextState(curPlayer, a, game_copy)
+  File "D:\TfsProj\alphastone\alphabot\Game.py", line 110, in getNextState
+    raise GameOver
+fireplace.exceptions.GameOver
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "main.py", line 43, in <module>
+    c.learn()
+  File "D:\TfsProj\alphastone\alphabot\Coach.py", line 155, in learn
+    nwins, pwins, draws = arena.playGames(self.args.arenaCompare, self.args.numThreads, verbose=False)
+  File "D:\TfsProj\alphastone\alphabot\Arena.py", line 113, in playGames
+    results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\site-packages\tqdm\_tqdm.py", line 979, in __iter__
+    for obj in iterable:
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\concurrent\futures\process.py", line 366, in _chain_from_iterable_of_lists
+    for element in iterable:
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\concurrent\futures\_base.py", line 586, in result_iterator
+    yield fs.pop().result()
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\concurrent\futures\_base.py", line 432, in result
+    return self.__get_result()
+  File "C:\Users\Patrick\AppData\Local\conda\conda\envs\python36\lib\concurrent\futures\_base.py", line 384, in __get_result
+    raise self._exception
+fireplace.exceptions.GameOver

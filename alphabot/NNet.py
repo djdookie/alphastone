@@ -10,7 +10,8 @@ import torch
 import torch.optim as optim
 # from torch.autograd import Variable
 
-from alphanet import DQN as nnet
+#from alphanet import DQN as nnet
+from alphanet18 import DQN as nnet
 
 args = dotdict({
     'lr': 0.001,
