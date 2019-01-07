@@ -7,10 +7,12 @@ from fireplace import cards
 from fireplace.exceptions import GameOver, InvalidAction
 from fireplace.game import Game
 from fireplace.player import Player
-from fireplace.utils import random_draft, roguebasic_draft
+from fireplace.utils import random_draft
 from hearthstone.enums import CardClass, CardSet
 from utils import UnhandledAction
 from fireplace.exceptions import GameOver
+from fireplace.deck import Deck
+
 
 class YEET:
     """
@@ -66,8 +68,8 @@ class YEET:
             # p2 = 4 # mage
             # deck1 = random_draft(CardClass(p1), exclude=extra_set)
             # deck2 = random_draft(CardClass(p2), exclude=extra_set)
-            deck1 = roguebasic_draft() # use same shuffled rogue AI basic decks for now
-            deck2 = roguebasic_draft()
+            deck1 = self.roguebasic_draft() # use same shuffled rogue AI basic decks for now
+            deck2 = self.roguebasic_draft()
         else:
             p1 = random.randint(1, 9)
             p2 = random.randint(1, 9)
@@ -443,3 +445,58 @@ class YEET:
         # enemy.hand, enemy.deck = combined[:len(enemy.hand)], combined[len(enemy.hand):]
         # enemy.hand.append(coin)
         return game_copy
+
+    def roguebasic_draft(self):
+        """
+        Return the basic AI rogue deck (from practice mode)
+        """
+        deck = []
+
+        # Assassinate
+        deck.append('CS2_076')
+        deck.append('CS2_076')
+        # Backstab
+        deck.append('CS2_072')
+        deck.append('CS2_072')
+        # Bloodfen Raptor
+        deck.append('CS2_172')
+        deck.append('CS2_172')
+        # Deadly Poison
+        deck.append('CS2_074')
+        deck.append('CS2_074')
+        # Dragonling Mechanic
+        deck.append('EX1_025')
+        deck.append('EX1_025')
+        # Elven Archer
+        deck.append('CS2_189')
+        deck.append('CS2_189')
+        # Gnomish Inventor
+        deck.append('CS2_147')
+        deck.append('CS2_147')
+        # Goldshire Footman
+        deck.append('CS1_042')
+        deck.append('CS1_042')
+        # Ironforge Rifleman 	
+        deck.append('CS2_141')
+        deck.append('CS2_141')
+        # Nightblade
+        deck.append('EX1_593')
+        deck.append('EX1_593')
+        # Novice Engineer
+        deck.append('EX1_015')
+        deck.append('EX1_015')
+        # Sap
+        deck.append('EX1_581')
+        deck.append('EX1_581')
+        # Sinister Strike
+        deck.append('CS2_075')
+        deck.append('CS2_075')
+        # Stormpike Commando
+        deck.append('CS2_150')
+        deck.append('CS2_150')
+        # Stormwind Knight
+        deck.append('CS2_131')
+        deck.append('CS2_131')
+
+        random.shuffle(deck)
+        return deck
