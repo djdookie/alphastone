@@ -47,6 +47,8 @@ class Arena():
         curPlayer = 1 if current_game.current_player.name == 'Player1' else -1
         #print(id(self.game))
         #print('\r\nStarting player: ' + current_game.current_player.name + ' ' + str(current_game.current_player.hero))
+        if verbose:
+            print("\r\nTurn", "Current player", "Mana", "P1 Health", "P2 Health", "Action", "Target", sep=";")
         it = 0
         while not current_game.ended or current_game.turn > 180:
             it+=1
@@ -54,6 +56,12 @@ class Arena():
             #     assert(self.display)
             #     print("Turn ", str(it), "Player ", str(curPlayer))
             #     self.display(current_game)
+            if verbose:
+                # print("########## Turn ", str(it), current_game.current_player.name, "Mana", str(current_game.current_player.mana), "Health", str(current_game.players[0].hero.health), " - ", str(current_game.players[1].hero.health))
+                mana = str(current_game.current_player.mana)
+                name = current_game.current_player.name
+                p1health = str(current_game.players[0].hero.health)
+                p2health = str(current_game.players[1].hero.health)
             if type(players[curPlayer+1]) is MethodType:
                 action = players[curPlayer + 1](current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action), current_game)
@@ -61,7 +69,13 @@ class Arena():
                 pi = players[curPlayer+1](self.game.getState(current_game))     # call partial function MCTS.getActionProb(currentState) for current active player
                 pi_reshape = np.reshape(pi, (21, 18))
                 action = np.where(pi_reshape==np.max(pi_reshape))
+                # logger = logging.getLogger("fireplace")
+                # logger.setLevel(logging.WARNING)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)
+                # logger.setLevel(logging.DEBUG)
+            if verbose:
+                # print("########## Action ", str(action[0][0]), str(action[1][1]))
+                print(str(it), name, mana, p1health, p2health, action[0][0], action[1][0], sep=";")
         # if verbose:
         #     assert(self.display)
         #     print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))

@@ -205,15 +205,15 @@ class YEET:
                 else:
                     raise UnhandledAction
             except UnhandledAction as e:
-                print("\r\nAttempted to take an inappropriate action!")
+                # print("\r\nAttempted to take an inappropriate action!")
                 # print(a)
-                print(str(e))
+                # print(str(e))
                 raise
             except InvalidAction as e:
-                print("\r\nAttempted to do something I can't!")
+                # print("\r\nAttempted to do something I can't!")
                 # print(a)
-                print(str(e))
-                player.game.end_turn()
+                # print(str(e))
+                player.game.end_turn()      # TODO: Find out why we often land here!!!
             except IndexError:
                 try:
                     player.game.end_turn()

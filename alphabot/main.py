@@ -12,16 +12,16 @@ args = dotdict({
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'updateThreshold': 0.55,
     'maxlenOfQueue': 200000,
-    'numMCTSSims': 25,      # TODO: much more sims needed?
+    'numMCTSSims': 25,      # 25    # TODO: much more sims needed?
     'arenaCompare': 40,
-    'cpuct': 1,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
+    'cpuct': 2,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
 
     'checkpoint': './temp/',
     'load_model': False,
     'load_folder_file': ('./temp/','best.pth.tar'),
-    'numItersForTrainExamplesHistory': 20,
+    'numItersForTrainExamplesHistory': 50,      #20
     'numThreads': 2,
-    'remoteTraining' : False
+    'remoteTraining': False
 })
 
 if __name__=="__main__":

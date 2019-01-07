@@ -73,7 +73,7 @@ class Coach:
             # print(self.mcts)
             pi_reshape = np.reshape(pi, (21, 18))
             # sym = self.game.getSymmetries(state, pi)
-            trainExamples.append([state, self.curPlayer, pi, None])
+            trainExamples.append([state, self.curPlayer, pi, None])     # TODO: Is None still needed?
             # for b,p in sym:
             #     trainExamples.append([b, self.curPlayer, p, None])
             action = np.random.choice(len(pi), p=pi)
@@ -102,7 +102,7 @@ class Coach:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
  
                 with ProcessPoolExecutor(self.args.numThreads) as executor:
-                    #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree
+                    #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree => not needed because we get a new instance per process start
                     # Setup a list of processes that we want to run
                     #results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
                     for result in list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):

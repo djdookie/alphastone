@@ -39,13 +39,13 @@ class MCTS():
         s = self.game.stringRepresentation(state)
 
         counts = [self.Nsa[(s,(a,b))] if (s,(a,b)) in self.Nsa else 0 for a in range(21) for b in range(18)]
-        if temp==0:
+        if temp==0:     # return only the most visited action (first max if multiple with same value exist) if temperature is 0
             bestA = np.argmax(counts)
             probs = [0]*len(counts)
             probs[bestA]=1
             return probs
-        counts = [x**(1./temp) for x in counts]
-        probs = [x/float(sum(counts)) for x in counts]
+        counts = [x**(1./temp) for x in counts]         # if temp is binary  (only 0 or 1), we can say counts = x if temp is 1 and possibly speedup this calculation here
+        probs = [x/float(sum(counts)) for x in counts]  # fraction x of counts, so that sum of all action probs is 1
         return probs
 
     def search(self, state, game_copy):
