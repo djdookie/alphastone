@@ -139,7 +139,7 @@ class Coach:
             self.saveTrainExamples(modelfile, i-1)
             
     def getCheckpointFile(self, modelfile, iteration):
-        return modelfile + '_' + str(iteration) + '.pth.tar'
+        return modelfile + '_' + str(iteration)
 
     def saveTrainExamples(self, modelfile, iteration):
         folder = self.args.examplespath
@@ -189,6 +189,7 @@ if __name__=="__main__":
     logger.setLevel(logging.WARNING)
 
     nnet = nn()
+    nnet.save_checkpoint(folder=args.modelspath, filename='0.pth.tar')
 
     c = Coach(g, nnet, args)
     c.learn()
