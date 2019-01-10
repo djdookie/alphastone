@@ -48,7 +48,7 @@ class Arena():
         #print(id(self.game))
         #print('\r\nStarting player: ' + current_game.current_player.name + ' ' + str(current_game.current_player.hero))
         if verbose:
-            print("\r\nTurn", "Current player", "Mana", "P1 Health", "P2 Health", "Action", "Target", sep=";")
+            print("\r\nTurn", "Current player", "P1 Mana", "P2 Mana", "P1 Health", "P2 Health", "P1 Handsize", "P2 Handsize", "P1 Fieldsize", "P2 Fieldsize", "P1 Decksize", "P2 Decksize", "Action", "Target", sep=";")
         it = 0
         while not current_game.ended or current_game.turn > 180:
             it+=1
@@ -58,13 +58,21 @@ class Arena():
             #     self.display(current_game)
             if verbose:
                 # print("########## Turn ", str(it), current_game.current_player.name, "Mana", str(current_game.current_player.mana), "Health", str(current_game.players[0].hero.health), " - ", str(current_game.players[1].hero.health))
-                mana = str(current_game.current_player.mana)
                 name = current_game.current_player.name
-                p1health = str(current_game.players[0].hero.health)
-                p2health = str(current_game.players[1].hero.health)
+                p1mana = current_game.players[0].mana
+                p2mana = current_game.players[1].mana
+                p1health = current_game.players[0].hero.health
+                p2health = current_game.players[1].hero.health
+                p1handsize = len(current_game.players[0].hand)
+                p2handsize = len(current_game.players[1].hand)
+                p1fieldsize = len(current_game.players[0].field)
+                p2fieldsize = len(current_game.players[1].field)
+                p1decksize = len(current_game.players[0].deck)
+                p2decksize = len(current_game.players[1].deck)
             if type(players[curPlayer+1]) is MethodType:
                 action = players[curPlayer + 1](current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action), current_game)
+                if verbose: act = [action[0], action[1]]
             else:
                 pi = players[curPlayer+1](self.game.getState(current_game))     # call partial function MCTS.getActionProb(currentState) for current active player
                 pi_reshape = np.reshape(pi, (21, 18))
@@ -72,10 +80,11 @@ class Arena():
                 # logger = logging.getLogger("fireplace")
                 # logger.setLevel(logging.WARNING)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)
+                if verbose: act = [action[0][0], action[1][0]]
                 # logger.setLevel(logging.DEBUG)
             if verbose:
-                # print("########## Action ", str(action[0][0]), str(action[1][1]))
-                print(str(it), name, mana, p1health, p2health, action[0][0], action[1][0], sep=";")
+                # print("########## Action ", str(action[0][0]), str(action[1][0]))
+                print(it, name, p1mana, p2mana, p1health, p2health, p1handsize, p2handsize, p1fieldsize, p2fieldsize, p1decksize, p2decksize, act[0], act[1], sep=";")
         # if verbose:
         #     assert(self.display)
         #     print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
