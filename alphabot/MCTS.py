@@ -34,7 +34,7 @@ class MCTS():
             # print('\r\n'), print(i)
             #self.search(state, create_copy=True)
             game_copy = self.game.cloneAndRandomize(self.game.game)
-            self.search(state, game_copy)
+            self.search(state, game_copy, 1)                            # TODO: Calculate everything relative to own perspective (own = 1, opponent = -1)
 
         s = self.game.stringRepresentation(state)
 
@@ -48,7 +48,7 @@ class MCTS():
         probs = [x/float(sum(counts)) for x in counts]  # fraction x of counts, so that sum of all action probs is 1
         return probs
 
-    def search(self, state, game_copy):
+    def search(self, state, game_copy, curPlayer):
         """
         NEEDS TO RUN ON DEEPCOPY!!!
 
@@ -70,12 +70,12 @@ class MCTS():
         #     game_copy = self.cloneAndRandomize(self.game.game)
         # print(id(game_copy))
 
-        s = self.game.stringRepresentation(state)                               # TODO: Accelerate by using one-hot-encoded bit representation?
+        s = self.game.stringRepresentation(state)                                # TODO: Accelerate by using one-hot-encoded bit representation?
         #curPlayer = 1 if game_copy.current_player.name == 'Player1' else -1     # TODO: always start with curPlayer to only reflect self and other player and compute MCTS tree for own perspective
-        curPlayer = 1
+        #curPlayer = 1                                                           # TODO: Calculate everything relative to own perspective (own = 1, opponent = -1)
 
         if s not in self.Es:
-            self.Es[s] = self.game.getGameEnded(game_copy, curPlayer)           # TODO: current_player should be correct! Not 1
+            self.Es[s] = self.game.getGameEnded(game_copy, 1)                   # TODO: 1 should be correct, not current player
         if game_copy.ended or game_copy.turn > 180:
             # terminal node
             # return -self.Es[s]
@@ -127,7 +127,7 @@ class MCTS():
         # next_s = self.game.getState(game_copy)                                # was redundant, happend implicitly in getNextState
         # if not game_copy.ended:
             # v = self.search(next_s, create_copy=False)                        #call recursively
-        v = self.search(next_s, game_copy)                                      #call recursively
+        v = self.search(next_s, game_copy, curPlayer)                           #call recursively
         # else:
             # v = -self.Es[s]
             # v = self.Es[s]
