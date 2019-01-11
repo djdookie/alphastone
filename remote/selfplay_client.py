@@ -22,7 +22,7 @@ args = dotdict({
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'maxlenOfQueue': 200000,
     'numMCTSSims': 25,      # 25    # TODO: much more sims needed?
-    'cpuct': 2,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
+    'cpuct': 1,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
 
     'modelspath': './models/',
     'examplespath': './examples/',

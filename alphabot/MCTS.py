@@ -30,11 +30,14 @@ class MCTS():
             probs: a policy vector where the probability of the ith action is
                    proportional to Nsa[(s,a)]**(1./temp)
         """
+        # Determine player who is calling MCTS for lookahead and determining best move (active player in the original's game turn)
+        self.callingPlayer = 1 if self.game.game.current_player.name == 'Player1' else -1     # TODO: always start with curPlayer to only reflect self and other player and compute MCTS tree for own perspective
+
         for i in range(self.args.numMCTSSims):
             # print('\r\n'), print(i)
             #self.search(state, create_copy=True)
             game_copy = self.game.cloneAndRandomize(self.game.game)
-            self.search(state, game_copy, 1)                            # TODO: Calculate everything relative to own perspective (own = 1, opponent = -1)
+            self.search(state, game_copy, self.callingPlayer)       # Start with calling player as curPlayer. curPlayer is only used for switching sides (could also initialize with 1 for relative perspective)
 
         s = self.game.stringRepresentation(state)
 
@@ -75,7 +78,7 @@ class MCTS():
         #curPlayer = 1                                                           # TODO: Calculate everything relative to own perspective (own = 1, opponent = -1)
 
         if s not in self.Es:
-            self.Es[s] = self.game.getGameEnded(game_copy, 1)                   # TODO: 1 should be correct, not current player
+            self.Es[s] = self.game.getGameEnded(game_copy, self.callingPlayer)   # Determine if the calling player won in this state (calling player is taken from fixed original game setup: 1 = player[0], -1 = player[1])
         if game_copy.ended or game_copy.turn > 180:
             # terminal node
             # return -self.Es[s]
