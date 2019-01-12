@@ -30,14 +30,15 @@ class MCTS():
             probs: a policy vector where the probability of the ith action is
                    proportional to Nsa[(s,a)]**(1./temp)
         """
-        # Determine player who is calling MCTS for lookahead and determining best move (active player in the original's game turn)
-        self.callingPlayer = 1 if self.game.game.current_player.name == 'Player1' else -1     # TODO: always start with curPlayer to only reflect self and other player and compute MCTS tree for own perspective
+        # Determine (root) player who is calling MCTS for lookahead and determining best move (active player in the original's game turn)
+        self.rootPlayer = 1 if self.game.game.current_player.name == 'Player1' else -1     # TODO: always start with curPlayer to only reflect self and other player and compute MCTS tree for own perspective
 
         for i in range(self.args.numMCTSSims):
             # print('\r\n'), print(i)
             #self.search(state, create_copy=True)
             game_copy = self.game.cloneAndRandomize(self.game.game)
-            self.search(state, game_copy, self.callingPlayer)       # Start with calling player as curPlayer. curPlayer is only used for switching sides (could also initialize with 1 for relative perspective)
+            # self.search(state, game_copy, self.rootPlayer)       # Start with root/calling player as curPlayer. curPlayer is only used for switching sides (could also initialize with 1 for relative perspective)
+            self.search(state, game_copy, 1)                       # Start with self (relative perspective 1 = self, -1 = opponent)
 
         s = self.game.stringRepresentation(state)
 
@@ -78,7 +79,7 @@ class MCTS():
         #curPlayer = 1                                                           # TODO: Calculate everything relative to own perspective (own = 1, opponent = -1)
 
         if s not in self.Es:
-            self.Es[s] = self.game.getGameEnded(game_copy, self.callingPlayer)   # Determine if the calling player won in this state (calling player is taken from fixed original game setup: 1 = player[0], -1 = player[1])
+            self.Es[s] = self.game.getGameEnded(game_copy, self.rootPlayer)     # Determine if the calling/root player won in this state (calling player is taken from fixed original game setup: 1 = player[0], -1 = player[1])
         if game_copy.ended or game_copy.turn > 180:
             # terminal node
             # return -self.Es[s]
@@ -111,12 +112,13 @@ class MCTS():
         cur_best = -float('inf')
         best_act = -1
 
-        # pick the action with the highest upper confidence bound
+        # pick the action with the highest upper confidence bound (UCT = Upper Confidence Bounds for Trees) ISUCT modification applied or needed? https://www.politesi.polimi.it/bitstream/10589/102246/1/2014_12_DiPalma.pdf
         for a in range(21):
             for b in range(18):
                 if valids[a,b]:
                     if (s,(a,b)) in self.Qsa:
-                        u = self.Qsa[(s,(a,b))] + self.args.cpuct*self.Ps[s][a,b]*math.sqrt(self.Ns[s])/(1+self.Nsa[(s,(a,b))])
+                        # u = self.Qsa[(s,(a,b))] + self.args.cpuct*self.Ps[s][a,b]*math.sqrt(self.Ns[s])/(1+self.Nsa[(s,(a,b))])
+                        u = self.Qsa[(s,(a,b))] * curPlayer + self.args.cpuct*self.Ps[s][a,b]*math.sqrt(self.Ns[s])/(1+self.Nsa[(s,(a,b))]) # If opponent is choosing his turn, Qsa should be multiplied by -1 (curPlayer), because good value for one player is bad value for his opponent in a zero-sum game.
                     else:
                         u = self.args.cpuct*self.Ps[s][a,b]*math.sqrt(self.Ns[s] + EPS)     # Q = 0 ?
 
