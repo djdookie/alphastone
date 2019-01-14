@@ -5,7 +5,8 @@ from NNet import NNetWrapper as NNet
 from dotted_dict import DottedDict as dotdict
 import numpy as np
 import logging, psutil, os, random, functools, sys
-from multiprocessing import freeze_support
+#from multiprocessing import freeze_support
+import multiprocessing as mp
 
 args = dotdict({
     'numGames': 20,     # 40
@@ -94,12 +95,13 @@ class HumanPlayer():
 
 if __name__ == '__main__':
     #freeze_support()
-    # Start processes with lower priority to prevent system overload/hangs/freezes
+    # Start processes with lower priority to prevent system overload/hangs/freezes. Also set multiprocessing start method to spawn for Linux, since forking makes trouble
     p = psutil.Process(os.getpid())
     if sys.platform.startswith('win32'):
         p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     elif sys.platform.startswith('linux'):
         p.nice(5)
+        mp.set_start_method('spawn')
 
     g = Game(is_basic=True)
     # Suppress logging from fireplace

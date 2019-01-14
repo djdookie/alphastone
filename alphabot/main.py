@@ -3,7 +3,8 @@ from Game import YEET as Game
 from NNet import NNetWrapper as nn
 #from utils import dotdict
 from dotted_dict import DottedDict as dotdict
-from multiprocessing import freeze_support
+#from multiprocessing import freeze_support
+import multiprocessing as mp
 import logging, psutil, os, sys
 
 args = dotdict({
@@ -26,12 +27,13 @@ args = dotdict({
 
 if __name__=="__main__":
     #freeze_support()
-    # Start processes with lower priority to prevent system overload/hangs/freezes
+    # Start processes with lower priority to prevent system overload/hangs/freezes. Also set multiprocessing start method to spawn for Linux, since forking makes trouble
     p = psutil.Process(os.getpid())
     if sys.platform.startswith('win32'):
         p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     elif sys.platform.startswith('linux'):
         p.nice(5)
+        mp.set_start_method('spawn')
 
     g = Game(is_basic=True)
     # Suppress logging from fireplace

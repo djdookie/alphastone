@@ -1,8 +1,8 @@
 from Game import YEET as Game
 from NNet import NNetWrapper as nn
 from dotted_dict import DottedDict as dotdict
-from multiprocessing import freeze_support
-import os, logging, copy, time, sys
+#from multiprocessing import freeze_support
+import os, logging, copy, time, sys, psutil
 from collections import deque
 from MCTS import MCTS
 import numpy as np
@@ -22,7 +22,7 @@ args = dotdict({
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'maxlenOfQueue': 200000,
     'numMCTSSims': 25,      # 25    # TODO: much more sims needed?
-    'cpuct': 1,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
+    'cpuct': 2,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
 
     'modelspath': './models/',
     'examplespath': './examples/',
@@ -183,13 +183,21 @@ class Coach:
 
 if __name__=="__main__":
     #freeze_support()
+    # Start processes with lower priority to prevent system overload/hangs/freezes. Also set multiprocessing start method to spawn for Linux, since forking makes trouble
+    p = psutil.Process(os.getpid())
+    if sys.platform.startswith('win32'):
+        p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    elif sys.platform.startswith('linux'):
+        p.nice(5)
+        mp.set_start_method('spawn')
+
     g = Game(is_basic=True)
     # Suppress logging from fireplace
     logger = logging.getLogger("fireplace")
     logger.setLevel(logging.WARNING)
 
     nnet = nn()
-    nnet.save_checkpoint(folder=args.modelspath, filename='0.pth.tar')
+    nnet.save_checkpoint(folder=args.modelspath, filename='0-18.pth.tar')
 
     c = Coach(g, nnet, args)
     c.learn()
