@@ -4,12 +4,8 @@ from Game import YEET as Game
 from NNet import NNetWrapper as NNet
 from dotted_dict import DottedDict as dotdict
 import numpy as np
-import random
-from utils import *
-import logging
-import functools
+import logging, psutil, os, random, functools, sys
 from multiprocessing import freeze_support
-import psutil, os
 
 args = dotdict({
     'numGames': 20,     # 40
@@ -97,6 +93,7 @@ class HumanPlayer():
         return actionid, idxid
 
 if __name__ == '__main__':
+    #freeze_support()
     # Start processes with lower priority to prevent system overload/hangs/freezes
     p = psutil.Process(os.getpid())
     if sys.platform.startswith('win32'):
@@ -104,7 +101,6 @@ if __name__ == '__main__':
     elif sys.platform.startswith('linux'):
         p.nice(5)
 
-    #freeze_support()
     g = Game(is_basic=True)
     # Suppress logging from fireplace
     logger = logging.getLogger("fireplace")

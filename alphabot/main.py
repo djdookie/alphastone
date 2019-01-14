@@ -3,8 +3,8 @@ from Game import YEET as Game
 from NNet import NNetWrapper as nn
 #from utils import dotdict
 from dotted_dict import DottedDict as dotdict
-import logging
 from multiprocessing import freeze_support
+import logging, psutil, os, sys
 
 args = dotdict({
     'numIters': 100,
@@ -17,15 +17,22 @@ args = dotdict({
     'cpuct': 2,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
 
     'checkpoint': './temp/',
-    'load_model': False,
+    'load_model': True,
     'load_folder_file': ('./temp/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 50,      #20
     'numThreads': 2,
-    'remoteTraining': False
+    'remoteTraining': True
 })
 
 if __name__=="__main__":
     #freeze_support()
+    # Start processes with lower priority to prevent system overload/hangs/freezes
+    p = psutil.Process(os.getpid())
+    if sys.platform.startswith('win32'):
+        p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    elif sys.platform.startswith('linux'):
+        p.nice(5)
+
     g = Game(is_basic=True)
     # Suppress logging from fireplace
     logger = logging.getLogger("fireplace")
