@@ -9,6 +9,7 @@ from utils import *
 import logging
 import functools
 from multiprocessing import freeze_support
+import psutil, os
 
 args = dotdict({
     'numGames': 20,     # 40
@@ -96,6 +97,13 @@ class HumanPlayer():
         return actionid, idxid
 
 if __name__ == '__main__':
+    # Start processes with lower priority to prevent system overload/hangs/freezes
+    p = psutil.Process(os.getpid())
+    if sys.platform.startswith('win32'):
+        p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    elif sys.platform.startswith('linux'):
+        p.nice(5)
+
     #freeze_support()
     g = Game(is_basic=True)
     # Suppress logging from fireplace
@@ -109,7 +117,9 @@ if __name__ == '__main__':
     # nnet players
     n1 = NNet()
     #n1.nnet.cuda()
-    n1.load_checkpoint('./temp/', 'best.pth.tar')           # newest network
+    n1.load_checkpoint('./temp/', 'best.pth.tar')
+    # n1.load_checkpoint('./temp/', 'best18-287k-75i.pth.tar')           # newest network
+    # n1.load_checkpoint('../remote/models/', '0-18b.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)
@@ -117,13 +127,15 @@ if __name__ == '__main__':
 
     n2 = NNet()
     n2.load_checkpoint('./temp/', 'temp.pth.tar')
+    # n2.load_checkpoint('./temp/', 'temp18.pth.tar')
+    # n2.load_checkpoint('../remote/models/', '0-18.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts2 = MCTS(g, n2, argsNN)
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)
     a2p = functools.partial(mcts2.getActionProb, temp=0)
 
     # define agent 1 and agent 2. Are switched after half of the games. TODO: MCTS tree reset needed between games?
-    arena = Arena.Arena(a1p, rp, g)
+    arena = Arena.Arena(a2p, rp, g)
 
     # show final results (P1 is agent 1, P2 is agent 2)
     p1_won, p2_won, draws = arena.playGames(args.numGames, args.numThreads, verbose=False)
