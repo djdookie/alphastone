@@ -12,8 +12,9 @@ from tensorboardX import SummaryWriter
 args = dotdict({
     'modelspath': './models/',
     'examplespath': './examples/',
-    'epochs': 4,       # best 25,
-    'validation': False
+    'epochs': 3,       # best 25,
+    'validation': False,
+    'early_stopping': False
 })
 
 class QueueManager(BaseManager): pass
@@ -43,8 +44,8 @@ if __name__=="__main__":
     client = TrainingClient()
 
     # load neural network
-    # print("Load current neural network")
-    # client.nnet.load_checkpoint(folder=client.args.modelspath, filename='0b.pth.tar')
+    print("Load current neural network")
+    client.nnet.load_checkpoint(folder=args.modelspath, filename='1.pth.tar')
 
     # load trainexamples
     print("Load trainExamples from file")
@@ -56,30 +57,28 @@ if __name__=="__main__":
         trainExamples.extend(e)
     shuffle(trainExamples)
   
-    # split training and test sets
-    examples_train, examples_test = train_test_split(trainExamples, test_size=0.25)
-
     # configure logger
     #configure("logs/run-1", flush_secs=5)
-    training_writer = SummaryWriter('runs/training-2')
-    test_writer = SummaryWriter('runs/test-2')
-    dif_writer = SummaryWriter('runs/dif-2')
-    max_loss_pi_dif = float('-inf')
+    if args.validation:
+        training_writer = SummaryWriter('runs/training-1')
+        test_writer = SummaryWriter('runs/test-1')
+        dif_writer = SummaryWriter('runs/dif-1')
+        max_loss_pi_dif = float('-inf')
 
     # train neural network
     for epoch in range(args.epochs):
         print('EPOCH ::: ' + str(epoch+1))
-        loss_pi_train, loss_v_train = client.nnet.train(examples_train)
+
         if args.validation:
-            # configure("logs/run-1/training", flush_secs=5)
-            # log_value('training_loss_pi', l_pi, epoch+1)
-            # log_value('training_loss_v', l_v, epoch+1)
+            # Train on separate training and test data
+            examples_train, examples_test = train_test_split(trainExamples, test_size=0.25)
+
+            loss_pi_train, loss_v_train = client.nnet.train(examples_train)
             # data grouping by `slash`
             training_writer.add_scalar('loss_pi', loss_pi_train, epoch+1)
             training_writer.add_scalar('loss_v', loss_v_train, epoch+1)
 
             loss_pi_test, loss_v_test = client.nnet.test(examples_test)
-            # configure("logs/run-1/test", flush_secs=5)
             test_writer.add_scalar('loss_pi', loss_pi_test, epoch+1)
             test_writer.add_scalar('loss_v', loss_v_test, epoch+1)
 
@@ -89,13 +88,16 @@ if __name__=="__main__":
             dif_writer.add_scalar('dif_v', loss_v_dif, epoch+1)
 
             # Early stopping
-            if max_loss_pi_dif < loss_pi_dif:
+            if args.early_stopping and max_loss_pi_dif < loss_pi_dif:
                 max_loss_pi_dif = loss_pi_dif
                 if max_loss_pi_dif > 0:
                     print('Early stopping because difference in loss_pi between training and test is positive and growing.')
                     break
+        else:
+            # Train normally on full data
+            client.nnet.train(trainExamples)
 
     print("Save new trained neural network")
-    client.nnet.save_checkpoint(folder=args.modelspath, filename='best.pth.tar')
+    client.nnet.save_checkpoint(folder=args.modelspath, filename='1a.pth.tar')
 
     # print('exiting...')
