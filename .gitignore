@@ -2,3 +2,7 @@ __pycache__
 CardDefs.xml
 alphabot/__pycache__
 .idea
+alphabot/temp*
+remote/examples*
+remote/models*
+remote/runs
