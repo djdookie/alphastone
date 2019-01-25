@@ -10,9 +10,9 @@ from utils import Bar, AverageMeter
 from pickle import Pickler, Unpickler
 from random import shuffle
 import multiprocessing as mp
-from multiprocessing import current_process
+from multiprocessing import current_process, Pool
 from multiprocessing.managers import BaseManager
-from concurrent.futures import ProcessPoolExecutor
+# from concurrent.futures import ProcessPoolExecutor
 import tqdm
 import functools
 
@@ -26,7 +26,7 @@ args = dotdict({
 
     'modelspath': './models/',
     'examplespath': './examples/',
-    'numThreads': 2,
+    'numThreads': mp.cpu_count(),
 })
 
 class QueueManager(BaseManager): pass
@@ -119,11 +119,11 @@ class Coach:
             if not self.skipFirstSelfPlay or i>1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
  
-                with ProcessPoolExecutor(self.args.numThreads) as executor:
+                with Pool(self.args.numThreads) as pool:
                     #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree => not needed because we get a new instance per process start
                     # Setup a list of processes that we want to run
                     #results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
-                    for result in list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
+                    for result in list(tqdm.tqdm(pool.imap(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
                         iterationTrainExamples += result
 
                 #iterationTrainExamples = [r for r in results]
@@ -191,13 +191,16 @@ if __name__=="__main__":
         p.nice(5)
         mp.set_start_method('spawn')
 
+    # Set number of threads for OpenMP
+    os.environ["OMP_NUM_THREADS"] = "1"
+
     g = Game(is_basic=True)
     # Suppress logging from fireplace
     logger = logging.getLogger("fireplace")
     logger.setLevel(logging.WARNING)
 
     nnet = nn()
-    nnet.save_checkpoint(folder=args.modelspath, filename='0-18.pth.tar')
+    nnet.save_checkpoint(folder=args.modelspath, filename='0.pth.tar')
 
     c = Coach(g, nnet, args)
     c.learn()

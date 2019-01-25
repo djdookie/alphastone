@@ -9,8 +9,8 @@ import logging, psutil, os, random, functools, sys
 import multiprocessing as mp
 
 args = dotdict({
-    'numGames': 20,     # 40
-    'numThreads': 2     # 2
+    'numGames': 16,                 # 48
+    'numThreads': mp.cpu_count()    # 8
 })
 
 """
@@ -102,6 +102,9 @@ if __name__ == '__main__':
     elif sys.platform.startswith('linux'):
         p.nice(5)
         mp.set_start_method('spawn')
+    
+    # Set number of threads for OpenMP
+    os.environ["OMP_NUM_THREADS"] = "1"
 
     g = Game(is_basic=True)
     # Suppress logging from fireplace
@@ -115,9 +118,9 @@ if __name__ == '__main__':
     # nnet players
     n1 = NNet()
     #n1.nnet.cuda()
-    n1.load_checkpoint('./temp/', 'best.pth.tar')
+    n1.load_checkpoint('./temp/', 'temp.pth.tar')
     # n1.load_checkpoint('./temp/', 'best18-287k-75i.pth.tar')           # newest network
-    # n1.load_checkpoint('../remote/models/', '0-18b.pth.tar')
+    # n1.load_checkpoint('../remote/models/', 'test.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)
@@ -126,14 +129,14 @@ if __name__ == '__main__':
     n2 = NNet()
     n2.load_checkpoint('./temp/', 'temp.pth.tar')
     # n2.load_checkpoint('./temp/', 'temp18.pth.tar')
-    # n2.load_checkpoint('../remote/models/', '0-18.pth.tar')
+    # n2.load_checkpoint('../remote/models/', 'temp.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts2 = MCTS(g, n2, argsNN)
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)
     a2p = functools.partial(mcts2.getActionProb, temp=0)
 
     # define agent 1 and agent 2. Are switched after half of the games. TODO: MCTS tree reset needed between games?
-    arena = Arena.Arena(a2p, rp, g)
+    arena = Arena.Arena(a1p, a2p, g)
 
     # show final results (P1 is agent 1, P2 is agent 2)
     p1_won, p2_won, draws = arena.playGames(args.numGames, args.numThreads, verbose=False)
