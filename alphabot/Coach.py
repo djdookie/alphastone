@@ -11,9 +11,9 @@ from random import shuffle
 import copy
 import logging
 import multiprocessing as mp
-from multiprocessing import current_process
+from multiprocessing import current_process, Pool
 from multiprocessing.managers import BaseManager
-from concurrent.futures import ProcessPoolExecutor
+#from concurrent.futures import ProcessPoolExecutor
 import tqdm
 import functools
 
@@ -101,11 +101,11 @@ class Coach:
             if not self.skipFirstSelfPlay or i>1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
  
-                with ProcessPoolExecutor(self.args.numThreads) as executor:
+                with Pool(self.args.numThreads) as pool:
                     #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree => not needed because we get a new instance per process start
                     # Setup a list of processes that we want to run
                     #results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
-                    for result in list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
+                    for result in list(tqdm.tqdm(pool.imap(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
                         iterationTrainExamples += result
 
                 #iterationTrainExamples = [r for r in results]

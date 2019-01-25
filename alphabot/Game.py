@@ -209,7 +209,7 @@ class YEET:
             except UnhandledAction as e:
                 # print("\r\nAttempted to take an inappropriate action!")
                 # print(a)
-                # print(str(e))
+                print(str(e))
                 raise
             except InvalidAction as e:
                 # print("\r\nAttempted to do something I can't!")

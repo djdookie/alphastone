@@ -14,14 +14,14 @@ args = dotdict({
     'updateThreshold': 0.55,
     'maxlenOfQueue': 200000,
     'numMCTSSims': 25,      # 25    # TODO: much more sims needed?
-    'arenaCompare': 40,
+    'arenaCompare': 48,
     'cpuct': 2,             # degree of exploration for upper confidence bound in MCTS.search() => TODO: try 2?
 
     'checkpoint': './temp/',
-    'load_model': True,
+    'load_model': False,
     'load_folder_file': ('./temp/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 50,      #20
-    'numThreads': 2,
+    'numThreads': mp.cpu_count(),
     'remoteTraining': True
 })
 
@@ -34,6 +34,9 @@ if __name__=="__main__":
     elif sys.platform.startswith('linux'):
         p.nice(5)
         mp.set_start_method('spawn')
+
+    # Set number of threads for OpenMP
+    os.environ["OMP_NUM_THREADS"] = "1"
 
     g = Game(is_basic=True)
     # Suppress logging from fireplace
