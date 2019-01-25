@@ -2,7 +2,8 @@ from utils import Bar, AverageMeter
 import numpy as np
 from types import *
 import time
-from concurrent.futures import ProcessPoolExecutor
+# from concurrent.futures import ProcessPoolExecutor
+from multiprocessing import Pool
 import tqdm
 import logging
 
@@ -118,8 +119,10 @@ class Arena():
         twoWon = 0
         draws = 0
         #for _ in range(num):
-        with ProcessPoolExecutor(numThreads) as executor:
-            results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
+        # with ProcessPoolExecutor(numThreads) as executor:
+        #     results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
+        with Pool(numThreads) as pool:
+            results = list(tqdm.tqdm(pool.imap(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:
@@ -142,8 +145,10 @@ class Arena():
         self.player1, self.player2 = self.player2, self.player1     # agents switching sides, not game players or heroes
         
         #for _ in range(num):
-        with ProcessPoolExecutor(numThreads) as executor:
-            results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
+        # with ProcessPoolExecutor(numThreads) as executor:
+        #     results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
+        with Pool(numThreads) as pool:
+            results = list(tqdm.tqdm(pool.imap(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:
