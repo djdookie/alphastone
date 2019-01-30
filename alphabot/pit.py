@@ -9,7 +9,7 @@ import logging, psutil, os, random, functools, sys
 import multiprocessing as mp
 
 args = dotdict({
-    'numGames': 16,                 # 48
+    'numGames': 48,                 # 48
     'numThreads': mp.cpu_count()    # 8
 })
 
@@ -95,7 +95,7 @@ class HumanPlayer():
 
 if __name__ == '__main__':
     #freeze_support()
-    # Start processes with lower priority to prevent system overload/hangs/freezes. Also set multiprocessing start method to spawn for Linux, since forking makes trouble
+    # Start processes with lower priority to prevent system overload/hangs/freezes. Also set multiprocessing start method to spawn for Linux, since forking makes trouble.
     p = psutil.Process(os.getpid())
     if sys.platform.startswith('win32'):
         p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
@@ -108,8 +108,10 @@ if __name__ == '__main__':
 
     g = Game(is_basic=True)
     # Suppress logging from fireplace
-    logger = logging.getLogger("fireplace")
-    logger.setLevel(logging.WARNING)
+    # logger = logging.getLogger("fireplace")
+    # logger.setLevel(logging.WARNING)
+    # logging.disable(logging.WARNING)      # disable logging
+    # logging.disable(logging.NOTSET)       # reenable logging
 
     # all players
     hp = HumanPlayer(g).play
@@ -118,7 +120,7 @@ if __name__ == '__main__':
     # nnet players
     n1 = NNet()
     #n1.nnet.cuda()
-    n1.load_checkpoint('./temp/', 'temp.pth.tar')
+    n1.load_checkpoint('./temp/', '0.pth.tar')
     # n1.load_checkpoint('./temp/', 'best18-287k-75i.pth.tar')           # newest network
     # n1.load_checkpoint('../remote/models/', 'test.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
@@ -127,7 +129,7 @@ if __name__ == '__main__':
     a1p = functools.partial(mcts1.getActionProb, temp=0)
 
     n2 = NNet()
-    n2.load_checkpoint('./temp/', 'temp.pth.tar')
+    n2.load_checkpoint('./temp/', '0.pth.tar')
     # n2.load_checkpoint('./temp/', 'temp18.pth.tar')
     # n2.load_checkpoint('../remote/models/', 'temp.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
@@ -140,7 +142,7 @@ if __name__ == '__main__':
 
     # show final results (P1 is agent 1, P2 is agent 2)
     p1_won, p2_won, draws = arena.playGames(args.numGames, args.numThreads, verbose=False)
-    print(f'\nResults: P1 {p1_won}, P2 {p2_won}, Draws {draws}')
+    print(f'\nResults: A1 {p1_won}, A2 {p2_won}, Draws {draws}')
 
 '''
 ai 21, random 29

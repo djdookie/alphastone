@@ -80,8 +80,11 @@ class YEET:
         game = Game(players=self.players)
         game.start()
 
-        # Skip mulligan for now
+        # Skip mulligan for now (only mulligan expensive cards)
         for player in game.players:
+            # if player.name == 'Player1':
+            # cards_to_mulligan = [c for c in player.choice.cards if c.cost > 3]
+            # else:
             cards_to_mulligan = random.sample(player.choice.cards, 0)
             player.choice.choose(*cards_to_mulligan)
 
@@ -193,7 +196,7 @@ class YEET:
                     player.field[a[0]-10].attack(player.field[a[0]-10].attack_targets[a[1]])
                 elif a[0] == 17:
                     if player.hero.power.requires_target():
-                            player.hero.power.use(player.hero.power.play_targets[a[1]])
+                        player.hero.power.use(player.hero.power.play_targets[a[1]])
                     else:
                         player.hero.power.use()
                 elif a[0] == 18:
@@ -224,6 +227,47 @@ class YEET:
             except GameOver:
                 pass
 
+    def getActionInfo(self, a, game_instance):
+        """
+        helper method to get info about the action and target for logging reasons
+
+        Input:
+            a, a tuple representing index of action
+            game_instance: the game object (actual game or deepcopy for MCTS)
+
+        """
+        player = game_instance.current_player
+        if not game_instance.ended:
+            try:
+                if 0 <= a[0] <= 9:
+                    if player.hand[a[0]].requires_target():
+                        return str(player.hand[a[0]]) + " targets " + str(player.hand[a[0]].targets[a[1]])
+                    elif player.hand[a[0]].must_choose_one:
+                        return str(player.hand[a[0]]) + " chooses " + str(player.hand[a[0]].choose_targets[a[1]])
+                    else:
+                        return "plays " + str(player.hand[a[0]])
+                elif 10 <= a[0] <= 16:
+                    return str(player.field[a[0]-10]) + " attacks " + str(player.field[a[0]-10].attack_targets[a[1]])
+                elif a[0] == 17:
+                    if player.hero.power.requires_target():
+                        return "uses hero power on target " + str(player.hero.power.play_targets[a[1]])
+                    else:
+                        return "uses hero power"
+                elif a[0] == 18:
+                    return "hero attacks target " + str(player.hero.attack_targets[a[1]])
+                elif a[0] == 19:
+                    return "ends turn"
+                elif a[0] == 20 and not player.choice:
+                    return "ends turn"
+                elif player.choice:
+                    return "chooses " + str(player.choice.cards[a[1]])
+            except IndexError:
+                try:
+                    return "ends turn, because index was out of range"
+                except GameOver:
+                    pass
+            except GameOver:
+                pass
 
     # def getGameEnded(self, game_instance):
     #     """

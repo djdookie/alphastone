@@ -35,7 +35,7 @@ if __name__=="__main__":
         p.nice(5)
         mp.set_start_method('spawn')
 
-    # Set number of threads for OpenMP
+    # Set number of threads for OpenMP in PyTorch
     os.environ["OMP_NUM_THREADS"] = "1"
 
     g = Game(is_basic=True)

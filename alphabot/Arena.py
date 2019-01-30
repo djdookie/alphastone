@@ -6,7 +6,8 @@ import time
 from multiprocessing import Pool
 import tqdm
 import logging
-
+from tensorboardX import SummaryWriter
+import sqlite3
 
 class Arena():
     """
@@ -29,7 +30,7 @@ class Arena():
         self.game = game
         self.display = display
 
-    def playGame(self, x, verbose=False):
+    def playGame(self, game_number, verbose=True):
         """
         Executes one episode of a game.
 
@@ -40,16 +41,53 @@ class Arena():
                 draw result returned from the game that is neither 1, -1, nor 0.
         """
         # Suppress logging from fireplace
-        logger = logging.getLogger("fireplace")
-        logger.setLevel(logging.WARNING)
+        fireplace_logger = logging.getLogger("fireplace")
+        fireplace_logger.setLevel(logging.WARNING)
+
+        if verbose:
+            fireplace_logger.handlers = []
+            # action_logger = logging.getLogger("action")
+            # game_logger = logging.getLogger("game")
+            # result_logger = logging.getLogger("result")
+            fireplace_logger.setLevel(logging.WARNING)
+            # action_logger.setLevel(logging.INFO)
+            # game_logger.setLevel(logging.INFO)
+            # result_logger.setLevel(logging.INFO)
+            # create a file handler
+            fireplace_handler = logging.FileHandler(f'logs/fireplace-{game_number}.log')
+            # action_handler = logging.FileHandler(f'logs/action-{game_number}.log')
+            # game_handler = logging.FileHandler(f'logs/game-{game_number}.csv')
+            # result_handler = logging.FileHandler(f'logs/results.csv')
+            # handler.setLevel(logging.INFO)
+            # create a logging format
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            fireplace_handler.setFormatter(formatter)
+            # action_handler.setFormatter(formatter)
+            # game_handler.setFormatter(logging.Formatter())
+            # result_handler.setFormatter(logging.Formatter())
+            # add the handlers to the logger
+            fireplace_logger.addHandler(fireplace_handler)
+            # action_logger.addHandler(action_handler)
+            # game_logger.addHandler(game_handler)
+            # result_logger.addHandler(result_handler)
+            # Create sqlite database
+            conn = sqlite3.connect('logs/alphastone.db')
+            c = conn.cursor()
+            # Create table
+            #c.execute("DROP TABLE IF EXISTS games")
+            c.execute("CREATE TABLE IF NOT EXISTS games (Game INT, Turn INT, Current_player TEXT, P1_Mana INT, P2_Mana INT, P1_Health INT, P2_Health INT, P1_Handsize INT, P2_Handsize INT, P1_Fieldsize INT, P2_Fieldsize INT, P1_Decksize INT, P2_Decksize INT, Action INT, Target INT, Activity TEXT)")
+            c.execute("CREATE TABLE IF NOT EXISTS results (Game INT, Hero_1 TEXT, Hero_2 TEXT, Result INT)")
+
         players = [self.player2, None, self.player1]
         # curPlayer = 1
         current_game = self.game.getInitGame()
         curPlayer = 1 if current_game.current_player.name == 'Player1' else -1
-        #print(id(self.game))
-        #print('\r\nStarting player: ' + current_game.current_player.name + ' ' + str(current_game.current_player.hero))
-        if verbose:
-            print("\r\nTurn", "Current player", "P1 Mana", "P2 Mana", "P1 Health", "P2 Health", "P1 Handsize", "P2 Handsize", "P1 Fieldsize", "P2 Fieldsize", "P1 Decksize", "P2 Decksize", "Action", "Target", sep=";")
+        # print(id(self.game))
+        # print('\r\nStarting player: ' + current_game.current_player.name + ' ' + str(current_game.current_player.hero))
+        # if verbose:
+            # game_logger.info(';'.join(["Game", "Turn", "Current player", "P1 Mana", "P2 Mana", "P1 Health", "P2 Health", "P1 Handsize", "P2 Handsize", "P1 Fieldsize", "P2 Fieldsize", "P1 Decksize", "P2 Decksize", "Action", "Target", "Activity"]))
+            #result_logger.info(';'.join(["Game", "Hero 1", "Hero 2", "Result"]))
+            # arena_writer = SummaryWriter('runs/arena-1')
         it = 0
         while not current_game.ended or current_game.turn > 180:
             it+=1
@@ -72,28 +110,48 @@ class Arena():
                 p2decksize = len(current_game.players[1].deck)
             if type(players[curPlayer+1]) is MethodType:
                 action = players[curPlayer + 1](current_game)
+                if verbose:
+                    act = [action[0], action[1]]
+                    activity = self.game.getActionInfo((action[0][0], action[1][0]), current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action), current_game)
-                if verbose: act = [action[0], action[1]]
             else:
+                fireplace_logger.setLevel(logging.WARNING)                      # disable loggin in MCTS
                 pi = players[curPlayer+1](self.game.getState(current_game))     # call partial function MCTS.getActionProb(currentState) for current active player
+                fireplace_logger.setLevel(logging.DEBUG)                        # reenable logging
+
                 pi_reshape = np.reshape(pi, (21, 18))
                 action = np.where(pi_reshape==np.max(pi_reshape))
-                # logger = logging.getLogger("fireplace")
-                # logger.setLevel(logging.WARNING)
+                if verbose:
+                    act = [action[0][0], action[1][0]]
+                    activity = self.game.getActionInfo((action[0][0], action[1][0]), current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)
-                if verbose: act = [action[0][0], action[1][0]]
-                # logger.setLevel(logging.DEBUG)
             if verbose:
                 # print("########## Action ", str(action[0][0]), str(action[1][0]))
-                print(it, name, p1mana, p2mana, p1health, p2health, p1handsize, p2handsize, p1fieldsize, p2fieldsize, p1decksize, p2decksize, act[0], act[1], sep=";")
+                # action_logger.info(name + ": " + str(activity))
+                # game_logger.info(';'.join([str(it), name, str(p1mana), str(p2mana), str(p1health), str(p2health), str(p1handsize), str(p2handsize), str(p1fieldsize), str(p2fieldsize), str(p1decksize), str(p2decksize), str(act[0]), str(act[1]), str(activity)]))
+                # Insert a row of data
+                c.execute("INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (str(game_number), str(it), name, str(p1mana), str(p2mana), str(p1health), str(p2health), str(p1handsize), str(p2handsize), str(p1fieldsize), str(p2fieldsize), str(p1decksize), str(p2decksize), str(act[0]), str(act[1]), str(activity)))
+                # Save (commit) the changes
+                conn.commit()
         # if verbose:
         #     assert(self.display)
         #     print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
         #     self.display(board)
+        result = self.game.getGameEnded(current_game, 1)
         if verbose:
-            print('\r\n' + str(current_game.players[0].hero) + " vs. " + str(current_game.players[1].hero))
-            print(" Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(current_game, 1)))
-        return self.game.getGameEnded(current_game, 1)     # returns 0 if game has not ended, 1 if player 1 won, -1 if player 1 lost
+            # print('\r\n' + str(current_game.players[0].hero) + " vs. " + str(current_game.players[1].hero))
+            ##print(" Game over: Turn ", str(it), "Result ", str(result))
+            # result_logger.info(';'.join([str(game_number), str(current_game.players[0].hero), str(current_game.players[1].hero), str(result)]))
+            c.execute("INSERT INTO results VALUES (?,?,?,?)", (str(game_number), str(current_game.players[0].hero), str(current_game.players[1].hero), str(result)))
+            # Save (commit) the changes
+            conn.commit()
+            # Close the connection
+            conn.close()
+            # arena_writer.add_scalar('result', result, game_number)
+            # arena_writer.add_scalar('turns', it, game_number)
+            # arena_writer.add_scalar('player1_health', p1health, game_number)
+            # arena_writer.add_scalar('player2_health', p2health, game_number)
+        return result     # returns 0 if game has not ended, 1 if player 1 won, -1 if player 1 lost
 
     def playGames(self, num, numThreads, verbose=False):
         """
@@ -122,7 +180,7 @@ class Arena():
         # with ProcessPoolExecutor(numThreads) as executor:
         #     results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
         with Pool(numThreads) as pool:
-            results = list(tqdm.tqdm(pool.imap(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
+            results = list(tqdm.tqdm(pool.imap(self.playGame, range(1, halfNum+1)), total=halfNum, desc='1st half'))
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:
@@ -141,14 +199,14 @@ class Arena():
             # bar.next()
 
         # show intermediate results (P1 is agent 1, P2 is agent 2)
-        print('P1/P2 WINS : %d / %d ; DRAWS : %d' % (oneWon, twoWon, draws))
+        print('A1/A2 WINS : %d / %d ; DRAWS : %d' % (oneWon, twoWon, draws))
         self.player1, self.player2 = self.player2, self.player1     # agents switching sides, not game players or heroes
         
         #for _ in range(num):
         # with ProcessPoolExecutor(numThreads) as executor:
         #     results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
         with Pool(numThreads) as pool:
-            results = list(tqdm.tqdm(pool.imap(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
+            results = list(tqdm.tqdm(pool.imap(self.playGame, range(halfNum+1, num+1)), total=halfNum, desc='2nd half'))
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:
