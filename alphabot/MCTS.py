@@ -45,12 +45,12 @@ class MCTS():
         counts = [self.Nsa[(s,(a,b))] if (s,(a,b)) in self.Nsa else 0 for a in range(21) for b in range(18)]
         if temp==0:                                     # return only the most visited action edge if temperature is 0
             # bestA = np.argmax(counts)                 # possible disadvantage for player 1 because target 0 is chosen more often
-            bestA = self.rargmax(counts)                # pick random action for multiple available max-count actions
+            bestA = self.rargmax(counts)                # pick random action for multiple available max-count actions TODO: only rargmax if there are multiple similar max values. possibly faster with the arena way?
             probs = [0]*len(counts)
             probs[bestA]=1
             return probs
         elif temp==1:
-            # counts = [x**(1./1) for x in counts]              # if temp is 1 then counts=counts, so we can save some compute time here
+            # counts = [x**(1./1) for x in counts]      # if temp is 1 then counts=counts, so we can save some compute time here
             pass
         else:    
             counts = [x**(1./temp) for x in counts]

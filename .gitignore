@@ -5,5 +5,5 @@ alphabot/__pycache__
 alphabot/temp*
 remote/examples*
 remote/models*
-remote/runs
-logs
+remote/runs*
+logs*

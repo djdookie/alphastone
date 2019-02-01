@@ -114,12 +114,14 @@ class Arena():
                 if verbose: fireplace_logger.setLevel(logging.DEBUG)            # reenable logging, if logging is activated
 
                 pi_reshape = np.reshape(pi, (21, 18))
-                action = np.where(pi_reshape==np.max(pi_reshape))
-                x = np.random.choice(len(action[0]))                            # pick random action for multiple available max-pi actions
+                #action = np.where(pi_reshape==np.max(pi_reshape))
+                #x = np.random.choice(len(action[0]))                           # pick random action for multiple available max-pi actions TODO: also use rargmax here? only rargmax if there are multiple similar max values
+                x = np.random.choice(len(pi), p=pi)                             # pick action using the probability vector pi
+                action = np.unravel_index(np.ravel(x, np.asarray(pi).shape), pi_reshape.shape)
                 if verbose:
-                    act = [action[0][x], action[1][x]]
-                    activity = self.game.getActionInfo((action[0][x], action[1][x]), current_game)
-                next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][x], action[1][x]), current_game)   # choose random action for real randomness, otherwise Player 1 has disadvantage because he is often picked as target=0
+                    act = [action[0][0], action[1][0]]
+                    activity = self.game.getActionInfo((action[0][0], action[1][0]), current_game)
+                next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)   # choose random action for real randomness, otherwise Player 1 has disadvantage because he is often picked as target=0
             if verbose:
                 # print("########## Action ", str(action[0][0]), str(action[1][0]))
                 # action_logger.info(name + ": " + str(activity))
