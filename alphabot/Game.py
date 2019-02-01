@@ -241,20 +241,20 @@ class YEET:
             try:
                 if 0 <= a[0] <= 9:
                     if player.hand[a[0]].requires_target():
-                        return str(player.hand[a[0]]) + " targets " + str(player.hand[a[0]].targets[a[1]])
+                        return str(player.hand[a[0]]) + " targets " + str(player.hand[a[0]].targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
                     elif player.hand[a[0]].must_choose_one:
-                        return str(player.hand[a[0]]) + " chooses " + str(player.hand[a[0]].choose_targets[a[1]])
+                        return str(player.hand[a[0]]) + " chooses " + str(player.hand[a[0]].choose_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
                     else:
                         return "plays " + str(player.hand[a[0]])
                 elif 10 <= a[0] <= 16:
-                    return str(player.field[a[0]-10]) + " attacks " + str(player.field[a[0]-10].attack_targets[a[1]])
+                    return str(player.field[a[0]-10]) + " attacks " + str(player.field[a[0]-10].attack_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
                 elif a[0] == 17:
                     if player.hero.power.requires_target():
-                        return "uses hero power on target " + str(player.hero.power.play_targets[a[1]])
+                        return "uses hero power on target " + str(player.hero.power.play_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
                     else:
                         return "uses hero power"
                 elif a[0] == 18:
-                    return "hero attacks target " + str(player.hero.attack_targets[a[1]])
+                    return "hero attacks target " + str(player.hero.attack_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
                 elif a[0] == 19:
                     return "ends turn"
                 elif a[0] == 20 and not player.choice:
@@ -436,30 +436,30 @@ class YEET:
         return s
 
 
-    def getSymmetries(self, state, pi):
-        """
-        Input:
-            state: current state
-            pi: policy vector of size self.getActionSize()
+    # def getSymmetries(self, state, pi):
+    #     """
+    #     Input:
+    #         state: current state
+    #         pi: policy vector of size self.getActionSize()
 
-        Returns:
-            symmForms: a list of [(actions,pi)] where each tuple is a symmetrical
-                       form of the actions and the corresponding pi vector. This
-                       is used when training the neural network from examples.
-        """
-        assert(len(pi) == 168)
-        pi_reshape = np.reshape(pi, (21, 9))
-        l = []
+    #     Returns:
+    #         symmForms: a list of [(actions,pi)] where each tuple is a symmetrical
+    #                    form of the actions and the corresponding pi vector. This
+    #                    is used when training the neural network from examples.
+    #     """
+    #     assert(len(pi) == 168)
+    #     pi_reshape = np.reshape(pi, (21, 9))
+    #     l = []
 
-        for i in range(1, 5):
-            for j in [True, False]:
-                newS = np.rot90(state, i)
-                newPi = np.rot90(pi_reshape, i)
-                if j:
-                    newS = np.fliplr(newS)
-                    newPi = np.fliplr(newPi)
-                l += [(newS, list(newPi.ravel()) + [pi[-1]])]
-        return l
+    #     for i in range(1, 5):
+    #         for j in [True, False]:
+    #             newS = np.rot90(state, i)
+    #             newPi = np.rot90(pi_reshape, i)
+    #             if j:
+    #                 newS = np.fliplr(newS)
+    #                 newPi = np.fliplr(newPi)
+    #             l += [(newS, list(newPi.ravel()) + [pi[-1]])]
+    #     return l
 
 
     def stringRepresentation(self, state):

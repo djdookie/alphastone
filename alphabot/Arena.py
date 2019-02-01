@@ -30,7 +30,7 @@ class Arena():
         self.game = game
         self.display = display
 
-    def playGame(self, game_number, verbose=True):
+    def playGame(self, game_number, verbose=False):
         """
         Executes one episode of a game.
 
@@ -70,14 +70,8 @@ class Arena():
             # action_logger.addHandler(action_handler)
             # game_logger.addHandler(game_handler)
             # result_logger.addHandler(result_handler)
-            # Create sqlite database
-            conn = sqlite3.connect('logs/alphastone.db')
-            c = conn.cursor()
-            # Create table
-            #c.execute("DROP TABLE IF EXISTS games")
-            c.execute("CREATE TABLE IF NOT EXISTS games (Game INT, Turn INT, Current_player TEXT, P1_Mana INT, P2_Mana INT, P1_Health INT, P2_Health INT, P1_Handsize INT, P2_Handsize INT, P1_Fieldsize INT, P2_Fieldsize INT, P1_Decksize INT, P2_Decksize INT, Action INT, Target INT, Activity TEXT)")
-            c.execute("CREATE TABLE IF NOT EXISTS results (Game INT, Hero_1 TEXT, Hero_2 TEXT, Result INT)")
-
+            records = []
+            
         players = [self.player2, None, self.player1]
         # curPlayer = 1
         current_game = self.game.getInitGame()
@@ -115,24 +109,24 @@ class Arena():
                     activity = self.game.getActionInfo((action[0][0], action[1][0]), current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action), current_game)
             else:
-                fireplace_logger.setLevel(logging.WARNING)                      # disable loggin in MCTS
+                fireplace_logger.setLevel(logging.WARNING)                      # disable logging in MCTS
                 pi = players[curPlayer+1](self.game.getState(current_game))     # call partial function MCTS.getActionProb(currentState) for current active player
-                fireplace_logger.setLevel(logging.DEBUG)                        # reenable logging
+                if verbose: fireplace_logger.setLevel(logging.DEBUG)            # reenable logging, if logging is activated
 
                 pi_reshape = np.reshape(pi, (21, 18))
                 action = np.where(pi_reshape==np.max(pi_reshape))
+                x = np.random.choice(len(action[0]))                            # pick random action for multiple available max-pi actions
                 if verbose:
-                    act = [action[0][0], action[1][0]]
-                    activity = self.game.getActionInfo((action[0][0], action[1][0]), current_game)
-                next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)
+                    act = [action[0][x], action[1][x]]
+                    activity = self.game.getActionInfo((action[0][x], action[1][x]), current_game)
+                next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][x], action[1][x]), current_game)   # choose random action for real randomness, otherwise Player 1 has disadvantage because he is often picked as target=0
             if verbose:
                 # print("########## Action ", str(action[0][0]), str(action[1][0]))
                 # action_logger.info(name + ": " + str(activity))
                 # game_logger.info(';'.join([str(it), name, str(p1mana), str(p2mana), str(p1health), str(p2health), str(p1handsize), str(p2handsize), str(p1fieldsize), str(p2fieldsize), str(p1decksize), str(p2decksize), str(act[0]), str(act[1]), str(activity)]))
                 # Insert a row of data
-                c.execute("INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (str(game_number), str(it), name, str(p1mana), str(p2mana), str(p1health), str(p2health), str(p1handsize), str(p2handsize), str(p1fieldsize), str(p2fieldsize), str(p1decksize), str(p2decksize), str(act[0]), str(act[1]), str(activity)))
-                # Save (commit) the changes
-                conn.commit()
+                #c.execute("INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (str(game_number), str(it), name, str(p1mana), str(p2mana), str(p1health), str(p2health), str(p1handsize), str(p2handsize), str(p1fieldsize), str(p2fieldsize), str(p1decksize), str(p2decksize), str(act[0]), str(act[1]), str(activity)))
+                records.append((str(game_number), str(it), name, str(p1mana), str(p2mana), str(p1health), str(p2health), str(p1handsize), str(p2handsize), str(p1fieldsize), str(p2fieldsize), str(p1decksize), str(p2decksize), str(act[0]), str(act[1]), str(activity)))
         # if verbose:
         #     assert(self.display)
         #     print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
@@ -142,11 +136,18 @@ class Arena():
             # print('\r\n' + str(current_game.players[0].hero) + " vs. " + str(current_game.players[1].hero))
             ##print(" Game over: Turn ", str(it), "Result ", str(result))
             # result_logger.info(';'.join([str(game_number), str(current_game.players[0].hero), str(current_game.players[1].hero), str(result)]))
-            c.execute("INSERT INTO results VALUES (?,?,?,?)", (str(game_number), str(current_game.players[0].hero), str(current_game.players[1].hero), str(result)))
-            # Save (commit) the changes
-            conn.commit()
-            # Close the connection
-            conn.close()
+            try:
+                conn = sqlite3.connect('logs/alphastone.db')
+                c = conn.cursor()
+                c.execute("CREATE TABLE IF NOT EXISTS games (Game INT, Turn INT, Current_player TEXT, P1_Mana INT, P2_Mana INT, P1_Health INT, P2_Health INT, P1_Handsize INT, P2_Handsize INT, P1_Fieldsize INT, P2_Fieldsize INT, P1_Decksize INT, P2_Decksize INT, Action INT, Target INT, Activity TEXT)")
+                c.execute("CREATE TABLE IF NOT EXISTS results (Game INT, Hero_1 TEXT, Hero_2 TEXT, Result INT)")
+                c.execute("INSERT INTO results VALUES (?,?,?,?)", (str(game_number), str(current_game.players[0].hero), str(current_game.players[1].hero), str(result)))
+                c.executemany("INSERT INTO games VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", records)
+                conn.commit()
+                conn.close()
+            except:
+                # TODO: logging here
+                raise
             # arena_writer.add_scalar('result', result, game_number)
             # arena_writer.add_scalar('turns', it, game_number)
             # arena_writer.add_scalar('player1_health', p1health, game_number)

@@ -142,7 +142,7 @@ class ISMCTS():
                 node = node.SelectChild(Game.GetValidMoves())
                 Game.getNextState(game, game.current_player, node.move)
 
-            #
+            # Expand
             untriedMoves = node.GetUntriedMoves(Game.getValidMoves(game) * node.pi)
             if untriedMoves != []: # if we can expand (i.e. state/node is non-terminal)
                 m = random.choice(untriedMoves)

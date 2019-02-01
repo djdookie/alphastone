@@ -108,8 +108,8 @@ if __name__ == '__main__':
 
     g = Game(is_basic=True)
     # Suppress logging from fireplace
-    # logger = logging.getLogger("fireplace")
-    # logger.setLevel(logging.WARNING)
+    logger = logging.getLogger("fireplace")
+    logger.setLevel(logging.WARNING)
     # logging.disable(logging.WARNING)      # disable logging
     # logging.disable(logging.NOTSET)       # reenable logging
 
@@ -123,10 +123,10 @@ if __name__ == '__main__':
     n1.load_checkpoint('./temp/', '0.pth.tar')
     # n1.load_checkpoint('./temp/', 'best18-287k-75i.pth.tar')           # newest network
     # n1.load_checkpoint('../remote/models/', 'test.pth.tar')
-    argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
+    argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})                  # minimum numMCTSSims = 2 to always find a valid action (at least end turn)
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)
-    a1p = functools.partial(mcts1.getActionProb, temp=0)
+    a1p = functools.partial(mcts1.getActionProb, temp=0)                # temp=1 means we pick an action by probability, temp=0 always takes the best action (most visited edge)
 
     n2 = NNet()
     n2.load_checkpoint('./temp/', '0.pth.tar')
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts2 = MCTS(g, n2, argsNN)
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)
-    a2p = functools.partial(mcts2.getActionProb, temp=0)
+    a2p = functools.partial(mcts2.getActionProb, temp=0)                
 
     # define agent 1 and agent 2. Are switched after half of the games. TODO: MCTS tree reset needed between games?
     arena = Arena.Arena(a1p, a2p, g)

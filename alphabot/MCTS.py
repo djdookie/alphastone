@@ -43,12 +43,17 @@ class MCTS():
         s = self.game.stringRepresentation(state)
 
         counts = [self.Nsa[(s,(a,b))] if (s,(a,b)) in self.Nsa else 0 for a in range(21) for b in range(18)]
-        if temp==0:     # return only the most visited action (first max if multiple with same value exist) if temperature is 0
-            bestA = np.argmax(counts)
+        if temp==0:                                     # return only the most visited action edge if temperature is 0
+            # bestA = np.argmax(counts)                 # possible disadvantage for player 1 because target 0 is chosen more often
+            bestA = self.rargmax(counts)                # pick random action for multiple available max-count actions
             probs = [0]*len(counts)
             probs[bestA]=1
             return probs
-        counts = [x**(1./temp) for x in counts]         # if temp is binary  (only 0 or 1), we can say counts = x if temp is 1 and possibly speedup this calculation here
+        elif temp==1:
+            # counts = [x**(1./1) for x in counts]              # if temp is 1 then counts=counts, so we can save some compute time here
+            pass
+        else:    
+            counts = [x**(1./temp) for x in counts]
         probs = [x/float(sum(counts)) for x in counts]  # fraction x of counts, so that sum of all action probs is 1
         return probs
 
@@ -147,3 +152,9 @@ class MCTS():
         self.Ns[s] += 1
         # return -v
         return v
+
+    def rargmax(self, vector):
+        """ Argmax that chooses randomly among eligible maximum indices. """
+        m = np.amax(vector)
+        indices = np.nonzero(vector == m)[0]
+        return random.choice(indices)
