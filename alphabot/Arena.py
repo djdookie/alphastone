@@ -115,7 +115,7 @@ class Arena():
 
                 pi_reshape = np.reshape(pi, (21, 18))
                 #action = np.where(pi_reshape==np.max(pi_reshape))
-                #x = np.random.choice(len(action[0]))                           # pick random action for multiple available max-pi actions TODO: also use rargmax here? only rargmax if there are multiple similar max values
+                #x = np.random.choice(len(action[0]))                           # pick random action for multiple available max-pi actions
                 x = np.random.choice(len(pi), p=pi)                             # pick action using the probability vector pi
                 action = np.unravel_index(np.ravel(x, np.asarray(pi).shape), pi_reshape.shape)
                 if verbose:
