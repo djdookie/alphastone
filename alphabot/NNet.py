@@ -11,11 +11,12 @@ import torch.optim as optim
 # from torch.autograd import Variable
 
 from alphanet import DQN as nnet
+# from alphanet6 import DQN as nnet
 # from alphanet18 import DQN as nnet
 
 args = dotdict({
     'lr': 0.001,
-    'dropout': 0.3,
+    # 'dropout': 0.3,
     'epochs': 10,       # best 25
     'batch_size': 128,  # best 128
     'cuda': False,
@@ -33,7 +34,7 @@ class NNetWrapper():
         """
         examples: list of examples, each example is of form (state, pi, v)
         """
-        optimizer = optim.Adam(self.nnet.parameters())
+        optimizer = optim.Adam(self.nnet.parameters(), lr=args.lr)
 
         for epoch in range(args.epochs):
             print('EPOCH ::: ' + str(epoch+1))
