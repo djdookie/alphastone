@@ -139,7 +139,7 @@ class Arena():
             ##print(" Game over: Turn ", str(it), "Result ", str(result))
             # result_logger.info(';'.join([str(game_number), str(current_game.players[0].hero), str(current_game.players[1].hero), str(result)]))
             try:
-                conn = sqlite3.connect('logs/alphastone.db')
+                conn = sqlite3.connect('logs/alphastone.sqlite')
                 c = conn.cursor()
                 c.execute("CREATE TABLE IF NOT EXISTS games (Game INT, Turn INT, Current_player TEXT, P1_Mana INT, P2_Mana INT, P1_Health INT, P2_Health INT, P1_Handsize INT, P2_Handsize INT, P1_Fieldsize INT, P2_Fieldsize INT, P1_Decksize INT, P2_Decksize INT, Action INT, Target INT, Activity TEXT)")
                 c.execute("CREATE TABLE IF NOT EXISTS results (Game INT, Hero_1 TEXT, Hero_2 TEXT, Result INT)")

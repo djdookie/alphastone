@@ -243,18 +243,18 @@ class YEET:
                     if player.hand[a[0]].requires_target():
                         return str(player.hand[a[0]]) + " targets " + str(player.hand[a[0]].targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
                     elif player.hand[a[0]].must_choose_one:
-                        return str(player.hand[a[0]]) + " chooses " + str(player.hand[a[0]].choose_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
+                        return str(player.hand[a[0]]) + " chooses " + str(player.hand[a[0]].choose_targets[a[1]]) + " (" + str(player.hand[a[0]].choose_targets[a[1]].controller.name) + ")"
                     else:
                         return "plays " + str(player.hand[a[0]])
                 elif 10 <= a[0] <= 16:
-                    return str(player.field[a[0]-10]) + " attacks " + str(player.field[a[0]-10].attack_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
+                    return str(player.field[a[0]-10]) + " attacks " + str(player.field[a[0]-10].attack_targets[a[1]]) + " (" + str(player.field[a[0]-10].attack_targets[a[1]].controller.name) + ")"
                 elif a[0] == 17:
                     if player.hero.power.requires_target():
-                        return "uses hero power on target " + str(player.hero.power.play_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
+                        return "uses hero power on target " + str(player.hero.power.play_targets[a[1]]) + " (" + str(player.hero.power.play_targets[a[1]].controller.name) + ")"
                     else:
                         return "uses hero power"
                 elif a[0] == 18:
-                    return "hero attacks target " + str(player.hero.attack_targets[a[1]]) + " (" + str(player.hand[a[0]].targets[a[1]].controller.name) + ")"
+                    return "hero attacks target " + str(player.hero.attack_targets[a[1]]) + " (" + str(player.hero.attack_targets[a[1]].controller.name) + ")"
                 elif a[0] == 19:
                     return "ends turn"
                 elif a[0] == 20 and not player.choice:
