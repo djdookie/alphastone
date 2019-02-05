@@ -10,7 +10,8 @@ import torch
 import torch.optim as optim
 # from torch.autograd import Variable
 
-from alphanet import DQN as nnet
+# from alphanet import DQN as nnet
+from alphanet12 import DQN as nnet
 # from alphanet6 import DQN as nnet
 # from alphanet18 import DQN as nnet
 

@@ -120,18 +120,18 @@ if __name__ == '__main__':
     # nnet players
     n1 = NNet()
     #n1.nnet.cuda()
-    n1.load_checkpoint('./temp/', '0.pth.tar')
+    # n1.load_checkpoint('./temp/', '0.pth.tar')
     # n1.load_checkpoint('./temp/', 'best18-287k-75i.pth.tar')           # newest network
-    # n1.load_checkpoint('../remote/models/', 'test.pth.tar')
+    n1.load_checkpoint('../remote/models/', '0-1s.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})                  # minimum numMCTSSims = 2 to always find a valid action (at least end turn)
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)
     a1p = functools.partial(mcts1.getActionProb, temp=0)                # temp=1 means we pick an action by probability, temp=0 always takes the best action (most visited edge. random if more than 1 best action is available)
 
     n2 = NNet()
-    n2.load_checkpoint('./temp/', '0.pth.tar')
+    # n2.load_checkpoint('./temp/', '0.pth.tar')
     # n2.load_checkpoint('./temp/', 'temp18.pth.tar')
-    # n2.load_checkpoint('../remote/models/', 'temp.pth.tar')
+    n2.load_checkpoint('../remote/models/', '0.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})
     mcts2 = MCTS(g, n2, argsNN)
     #a2p = lambda x: mcts2.getActionProb(x, temp=0)

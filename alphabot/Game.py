@@ -28,7 +28,6 @@ class YEET:
         self.is_basic = is_basic
         self.isolate = False
 
-
     def isolateSet(self, filename='notbasicset', set='CardSet.CORE'):
         # isolates the specified card set for exclusion in drafting
         cards.db.initialize()
@@ -39,7 +38,6 @@ class YEET:
         with open(f'{filename}.data', 'wb') as filehandle:
             # store the data as binary data stream
             pickle.dump(extraset, filehandle)
-
 
     def getInitGame(self):
         """
@@ -92,7 +90,6 @@ class YEET:
         self.game = game
         return game
 
-
     def getNextState(self, player, action, game_instance):
         """
         Input:
@@ -118,7 +115,6 @@ class YEET:
             return next_state, player
         else:
             return next_state, -player
-
 
     def getValidMoves(self, game_instance):
         """
@@ -171,7 +167,6 @@ class YEET:
             # add end turn
             actions[19,1] = 1
         return actions
-
 
     def performAction(self, a, game_instance):
         """
@@ -331,18 +326,123 @@ class YEET:
             return 0.0001
         return 0
 
+    # def getState(self, game_instance):
+    #     """
+    #     Args:
+    #         game_instance: the game object (actual game or deepcopy for MCTS)
+    #     return:
+    #         a 273 length numpy array of features extracted from the
+    #         supplied game.
+    #     """
+    #     # if game_instance == None:
+    #     #     game_instance = self.game
+
+    #     s = np.zeros(273, dtype=np.int32)
+
+    #     p1 = game_instance.current_player
+    #     p2 = p1.opponent
+
+    #     #0-9 player1 class, we subtract 1 here because the classes are from 1 to 10
+    #     s[p1.hero.card_class-1] = 1
+    #     #10-19 player2 class
+    #     s[10 + p2.hero.card_class-1] = 1
+    #     i = 20
+    #     # 20-21: current health of current player, then opponent
+    #     s[i] = p1.hero.health
+    #     s[i + 1] = p2.hero.health
+
+    #     # 22: hero power usable y/n
+    #     s[i + 2] = p1.hero.power.is_usable()*1
+    #     # 23-24: # of mana crystals for you opponent
+    #     s[i + 3] = p1.max_mana
+    #     s[i + 4] = p2.max_mana
+    #     # 25: # of crystals still available
+    #     s[i + 5] = p1.mana
+    #     #26-31: weapon equipped y/n, pow., dur. for you, then opponent
+    #     s[i + 6] = 0 if p1.weapon is None else 1
+    #     s[i + 7] = 0 if p1.weapon is None else p1.weapon.damage
+    #     s[i + 8] = 0 if p1.weapon is None else p1.weapon.durability
+
+    #     s[i + 9] = 0 if p2.weapon is None else 1
+    #     s[i + 10] = 0 if p2.weapon is None else p2.weapon.damage
+    #     s[i + 11] = 0 if p2.weapon is None else p2.weapon.durability
+
+    #     # 32: number of cards in opponents hand
+    #     s[i + 12] = len(p2.hand)
+    #     #in play minions
+
+    #     i = 33
+    #     #33-102, your monsters on the field
+    #     p1_minions = len(p1.field)
+    #     for j in range(0, 7):
+    #         if j < p1_minions:
+    #             # filled y/n, pow, tough, current health, can attack
+    #             s[i] = 1
+    #             s[i + 1] = p1.field[j].atk
+    #             s[i + 2] = p1.field[j].max_health
+    #             s[i + 3] = p1.field[j].health
+    #             s[i + 4] = p1.field[j].can_attack()*1
+    #             # deathrattle, div shield, taunt, stealth y/n
+    #             s[i + 5] = p1.field[j].has_deathrattle*1
+    #             s[i + 6] = p1.field[j].divine_shield*1
+    #             s[i + 7] = p1.field[j].taunt*1
+    #             s[i + 8] = p1.field[j].stealthed*1
+    #             s[i + 9] = p1.field[j].silenced*1
+    #         i += 10
+
+    #     #103-172, enemy monsters on the field
+    #     p2_minions = len(p2.field)
+    #     for j in range(0, 7):
+    #         if j < p2_minions:
+    #             # filled y/n, pow, tough, current health, can attack
+    #             s[i] = 1
+    #             s[i + 1] = p2.field[j].atk
+    #             s[i + 2] = p2.field[j].max_health
+    #             s[i + 3] = p2.field[j].health
+    #             s[i + 4] = p2.field[j].can_attack()*1
+    #             # deathrattle, div shield, taunt, stealth y/n
+    #             s[i + 5] = p2.field[j].has_deathrattle*1
+    #             s[i + 6] = p2.field[j].divine_shield*1
+    #             s[i + 7] = p2.field[j].taunt*1
+    #             s[i + 8] = p2.field[j].stealthed*1
+    #             s[i + 9] = p2.field[j].silenced*1
+    #         i += 10
+
+    #     #in hand
+
+    #     #173-272, your cards in hand
+    #     p1_hand = len(p1.hand)
+    #     for j in range(0, 10):
+    #         if j < p1_hand:
+    #             #card y/n
+    #             s[i] = 1
+    #             # minion y/n, attk, hp, battlecry, div shield, deathrattle, taunt
+    #             s[i + 1] = 1 if p1.hand[j].type == 4 else 0
+    #             s[i + 2] = p1.hand[j].atk if s[i + 1] == 1 else 0
+    #             s[i + 3] = p1.hand[j].health if s[i + 1] == 1 else 0
+    #             s[i + 4] = p1.hand[j].divine_shield*1 if s[i + 1] == 1 else 0
+    #             s[i + 5] = p1.hand[j].has_deathrattle*1 if s[i + 1] == 1 else 0
+    #             s[i + 6] = p1.hand[j].taunt*1 if s[i + 1] == 1 else 0
+    #             # weapon y/n, spell y/n, cost
+    #             s[i + 7] = 1 if p1.hand[j].type == 7 else 0
+    #             s[i + 8] = 1 if p1.hand[j].type == 5 else 0
+    #             s[i + 9] = p1.hand[j].cost
+    #         i += 10
+    #     return s
+
     def getState(self, game_instance):
         """
         Args:
             game_instance: the game object (actual game or deepcopy for MCTS)
         return:
-            a 273 length numpy array of features extracted from the
+            a 278 length numpy array of features extracted from the
             supplied game.
         """
         # if game_instance == None:
         #     game_instance = self.game
 
-        s = np.zeros(273, dtype=np.int32)
+        # s = np.zeros(273, dtype=np.int32)
+        s = np.zeros(278, dtype=np.float32)
 
         p1 = game_instance.current_player
         p2 = p1.opponent
@@ -353,27 +453,27 @@ class YEET:
         s[10 + p2.hero.card_class-1] = 1
         i = 20
         # 20-21: current health of current player, then opponent
-        s[i] = p1.hero.health
-        s[i + 1] = p2.hero.health
+        s[i] = p1.hero.health / 30
+        s[i + 1] = p2.hero.health / 30
 
         # 22: hero power usable y/n
         s[i + 2] = p1.hero.power.is_usable()*1
         # 23-24: # of mana crystals for you opponent
-        s[i + 3] = p1.max_mana
-        s[i + 4] = p2.max_mana
+        s[i + 3] = p1.max_mana / 10
+        s[i + 4] = p2.max_mana / 10
         # 25: # of crystals still available
-        s[i + 5] = p1.mana
+        s[i + 5] = p1.mana / 10
         #26-31: weapon equipped y/n, pow., dur. for you, then opponent
-        s[i + 6] = 0 if p1.weapon is None else 1
+        s[i + 6] = 0 if p1.weapon is None else 1                        # TODO weapon id?
         s[i + 7] = 0 if p1.weapon is None else p1.weapon.damage
         s[i + 8] = 0 if p1.weapon is None else p1.weapon.durability
 
-        s[i + 9] = 0 if p2.weapon is None else 1
+        s[i + 9] = 0 if p2.weapon is None else 1                        # TODO: weapon id?
         s[i + 10] = 0 if p2.weapon is None else p2.weapon.damage
         s[i + 11] = 0 if p2.weapon is None else p2.weapon.durability
 
         # 32: number of cards in opponents hand
-        s[i + 12] = len(p2.hand)
+        s[i + 12] = len(p2.hand) / 10
         #in play minions
 
         i = 33
@@ -383,9 +483,10 @@ class YEET:
             if j < p1_minions:
                 # filled y/n, pow, tough, current health, can attack
                 s[i] = 1
-                s[i + 1] = p1.field[j].atk
-                s[i + 2] = p1.field[j].max_health
-                s[i + 3] = p1.field[j].health
+                # s[i] = p1.field[j].data.dbf_id                        # TODO: card id normalized or one-hot-encoded, max_attack?
+                s[i + 1] = p1.field[j].atk / 20
+                s[i + 2] = p1.field[j].max_health / 20
+                s[i + 3] = p1.field[j].health / 20
                 s[i + 4] = p1.field[j].can_attack()*1
                 # deathrattle, div shield, taunt, stealth y/n
                 s[i + 5] = p1.field[j].has_deathrattle*1
@@ -401,9 +502,10 @@ class YEET:
             if j < p2_minions:
                 # filled y/n, pow, tough, current health, can attack
                 s[i] = 1
-                s[i + 1] = p2.field[j].atk
-                s[i + 2] = p2.field[j].max_health
-                s[i + 3] = p2.field[j].health
+                # s[i] = p2.field[j].data.dbf_id                        # TODO: card id normalized or one-hot-encoded
+                s[i + 1] = p2.field[j].atk / 20
+                s[i + 2] = p2.field[j].max_health / 20
+                s[i + 3] = p2.field[j].health / 20
                 s[i + 4] = p2.field[j].can_attack()*1
                 # deathrattle, div shield, taunt, stealth y/n
                 s[i + 5] = p2.field[j].has_deathrattle*1
@@ -421,20 +523,43 @@ class YEET:
             if j < p1_hand:
                 #card y/n
                 s[i] = 1
+                # s[i] = p1.hand[j].data.dbf_id                        # TODO: card id normalized or one-hot-encoded
                 # minion y/n, attk, hp, battlecry, div shield, deathrattle, taunt
                 s[i + 1] = 1 if p1.hand[j].type == 4 else 0
-                s[i + 2] = p1.hand[j].atk if s[i + 1] == 1 else 0
-                s[i + 3] = p1.hand[j].health if s[i + 1] == 1 else 0
+                s[i + 2] = p1.hand[j].atk / 20 if s[i + 1] == 1 else 0
+                s[i + 3] = p1.hand[j].health / 20 if s[i + 1] == 1 else 0
                 s[i + 4] = p1.hand[j].divine_shield*1 if s[i + 1] == 1 else 0
                 s[i + 5] = p1.hand[j].has_deathrattle*1 if s[i + 1] == 1 else 0
                 s[i + 6] = p1.hand[j].taunt*1 if s[i + 1] == 1 else 0
                 # weapon y/n, spell y/n, cost
-                s[i + 7] = 1 if p1.hand[j].type == 7 else 0
-                s[i + 8] = 1 if p1.hand[j].type == 5 else 0
-                s[i + 9] = p1.hand[j].cost
+                s[i + 7] = 1 if p1.hand[j].type == 7 else 0             # TODO: weapon stats
+                s[i + 8] = 1 if p1.hand[j].type == 5 else 0             # TODO: spell stats?
+                s[i + 9] = p1.hand[j].cost / 25
             i += 10
-        return s
+        
+        #273, # of crystals still available opponent
+        s[273] = p2.mana / 10
+        # number of player minions
+        s[274] = len(p1.field) / 7
+        # number of opponent minions
+        s[275] = len(p2.field) / 7
+        # number of player cards in hand
+        s[276] = len(p1.hand) / 10
+        #274, turn
+        s[277] = game_instance.turn / 180     # normalize turn by maximal possible turn
 
+        #274, card advantage player, then opponent
+        # i = 274
+        # s[i] = 0
+
+        #275, deck cards player, then opponent
+
+        # played cards player, then opponent
+
+
+        # TODO: Normalize and one-hot encode data!!!
+
+        return s
 
     # def getSymmetries(self, state, pi):
     #     """
@@ -460,7 +585,6 @@ class YEET:
     #                 newPi = np.fliplr(newPi)
     #             l += [(newS, list(newPi.ravel()) + [pi[-1]])]
     #     return l
-
 
     def stringRepresentation(self, state):
         """
