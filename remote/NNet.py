@@ -14,12 +14,13 @@ import torch.optim as optim
 from alphanet12 import DQN as nnet
 # from alphanet6 import DQN as nnet
 # from alphanet18 import DQN as nnet
+# from alphanet26 import DQN as nnet
 
 args = dotdict({
-    'lr': 0.001,       # 0.001
+    'lr': 0.0001,       # 0.001 - 0.0001
     # 'dropout': 0.3,     # 0.3
     # 'epochs': 2,       # best 25
-    'batch_size': 128,  # best 128
+    'batch_size': 64,  # best 128 - 4
     'cuda': True,
     # 'num_channels': 512,
 })
@@ -184,7 +185,7 @@ class NNetWrapper():
         with torch.no_grad():
             pi, v = self.nnet(state)
 
-        #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
+        # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 
     def loss_pi(self, targets, outputs):

@@ -21,7 +21,7 @@ args = dotdict({
     'load_model': False,
     'load_folder_file': ('./temp/','best.pth.tar'),
     'numItersForTrainExamplesHistory': 50,      #20
-    'numThreads': mp.cpu_count(),
+    'numThreads': psutil.cpu_count(),
     'remoteTraining': True
 })
 

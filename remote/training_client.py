@@ -12,7 +12,7 @@ from tensorboardX import SummaryWriter
 args = dotdict({
     'modelspath': './models/',
     'examplespath': './examples/',
-    'epochs': 100,       # best 25,
+    'epochs': 30,       # best 25,
     'validation': True,
     'early_stopping': False
 })
@@ -27,7 +27,7 @@ class TrainingClient:
     def loadTrainExamples(self):
         # modelFile = os.path.join(args.examplespath, 'best.pth.tar')
         # examplesFile = modelFile+".examples"
-        examplesFile = os.path.join(args.examplespath, '0.pth.tar_0.examples')
+        examplesFile = os.path.join(args.examplespath, '0.pth.tar_3.examples')
         if not os.path.isfile(examplesFile):
             print(examplesFile)
             r = input("File with trainExamples not found. Continue? [y|n]")
@@ -60,9 +60,9 @@ if __name__=="__main__":
     # configure logger
     #configure("logs/run-1", flush_secs=5)
     if args.validation:
-        training_writer = SummaryWriter('runs/training-1s')
-        test_writer = SummaryWriter('runs/test-1s')
-        dif_writer = SummaryWriter('runs/dif-1s')
+        training_writer = SummaryWriter('runs/training-32')
+        test_writer = SummaryWriter('runs/test-32')
+        dif_writer = SummaryWriter('runs/dif-32')
         max_loss_pi_dif = float('-inf')
 
     # train neural network
@@ -71,7 +71,7 @@ if __name__=="__main__":
 
         if args.validation:
             # Train on separate training and test data
-            examples_train, examples_test = train_test_split(trainExamples, test_size=0.10)
+            examples_train, examples_test = train_test_split(trainExamples, test_size=0.20)
 
             loss_pi_train, loss_v_train = client.nnet.train(examples_train)
             # data grouping by `slash`
@@ -98,6 +98,6 @@ if __name__=="__main__":
             client.nnet.train(trainExamples)
 
     print("Save new trained neural network")
-    client.nnet.save_checkpoint(folder=args.modelspath, filename='0-1s.pth.tar')
+    client.nnet.save_checkpoint(folder=args.modelspath, filename='0-32.pth.tar')
 
     # print('exiting...')

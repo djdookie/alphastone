@@ -9,8 +9,8 @@ import logging, psutil, os, random, functools, sys
 import multiprocessing as mp
 
 args = dotdict({
-    'numGames': 48,                 # 48
-    'numThreads': mp.cpu_count()    # 8
+    'numGames': 16,                 # 48
+    'numThreads': psutil.cpu_count()    # 8
 })
 
 """
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     #n1.nnet.cuda()
     # n1.load_checkpoint('./temp/', '0.pth.tar')
     # n1.load_checkpoint('./temp/', 'best18-287k-75i.pth.tar')           # newest network
-    n1.load_checkpoint('../remote/models/', '0-1s.pth.tar')
+    n1.load_checkpoint('../remote/models/', '0-32.pth.tar')
     argsNN = dotdict({'numMCTSSims': 25, 'cpuct': 1.0})                  # minimum numMCTSSims = 2 to always find a valid action (at least end turn)
     mcts1 = MCTS(g, n1, argsNN)
     #a1p = lambda x: mcts1.getActionProb(x, temp=0)

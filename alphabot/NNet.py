@@ -14,6 +14,7 @@ import torch.optim as optim
 from alphanet12 import DQN as nnet
 # from alphanet6 import DQN as nnet
 # from alphanet18 import DQN as nnet
+# from alphanet26 import DQN as nnet
 
 args = dotdict({
     'lr': 0.001,

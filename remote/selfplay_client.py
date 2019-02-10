@@ -12,8 +12,8 @@ from random import shuffle
 import multiprocessing as mp
 from multiprocessing import current_process, Pool
 from multiprocessing.managers import BaseManager
-# from concurrent.futures import ProcessPoolExecutor
-import tqdm
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from tqdm import tqdm
 import functools
 
 args = dotdict({
@@ -26,7 +26,7 @@ args = dotdict({
 
     'modelspath': './models/',
     'examplespath': './examples/',
-    'numThreads': mp.cpu_count(),
+    'numThreads': psutil.cpu_count(),
 })
 
 class QueueManager(BaseManager): pass
@@ -73,10 +73,14 @@ class Coach:
         self.curPlayer = 1 if current_game.current_player.name == 'Player1' else -1
         #print(id(self.curPlayer))
         episodeStep = 0
+        # timing
+        # start = time.time()
 
         while True:
             episodeStep += 1
-            #print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
+            # print('---Episode step ' + str(episodeStep) + '--- ' + current_process().name) #os.getpid())
+            # print('TIME TAKEN : {0:03f}'.format(time.time()-start))
+            # start = time.time()
             state = self.game.getState(current_game)                    # state is from the current player's perspective
             temp = int(episodeStep < self.args.tempThreshold)
 
@@ -119,14 +123,16 @@ class Coach:
             if not self.skipFirstSelfPlay or i>1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
  
-                with Pool(self.args.numThreads) as pool:
-                    #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree => not needed because we get a new instance per process start
-                    # Setup a list of processes that we want to run
-                    #results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
-                    for result in list(tqdm.tqdm(pool.imap(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
-                        iterationTrainExamples += result
+                # with ProcessPoolExecutor(self.args.numThreads) as executor:
+                #     results = list(tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
+                # iterationTrainExamples = [r for r in results]
 
-                #iterationTrainExamples = [r for r in results]
+                # with Pool(self.args.numThreads) as pool:
+                #     for result in list(tqdm(pool.imap(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
+                #         iterationTrainExamples += result
+
+                for result in self.parallel_process(range(self.args.numEps), self.executeEpisode, n_jobs=self.args.numThreads, front_num=0):
+                    iterationTrainExamples += result
 
                 # save the iteration examples to the history 
                 self.trainExamplesHistory.append(iterationTrainExamples)
@@ -137,7 +143,54 @@ class Coach:
             # backup history to a file
             # NB! the examples were collected using the model from the previous iteration, so (i-1)  
             self.saveTrainExamples(modelfile, i-1)
-            
+
+    def parallel_process(self, array, function, n_jobs=16, use_kwargs=False, front_num=3):
+        """
+            A parallel version of the map function with a progress bar. 
+
+            Args:
+                array (array-like): An array to iterate over.
+                function (function): A python function to apply to the elements of array
+                n_jobs (int, default=16): The number of cores to use
+                use_kwargs (boolean, default=False): Whether to consider the elements of array as dictionaries of 
+                    keyword arguments to function 
+                front_num (int, default=3): The number of iterations to run serially before kicking off the parallel job. 
+                    Useful for catching bugs
+            Returns:
+                [function(array[0]), function(array[1]), ...]
+        """
+        #We run the first few iterations serially to catch bugs
+        front = []
+        if front_num > 0:
+            front = [function(**a) if use_kwargs else function(a) for a in array[:front_num]]
+        #If we set n_jobs to 1, just run a list comprehension. This is useful for benchmarking and debugging.
+        if n_jobs==1:
+            return front + [function(**a) if use_kwargs else function(a) for a in tqdm(array[front_num:])]
+        #Assemble the workers
+        with ProcessPoolExecutor(max_workers=n_jobs) as pool:
+            #Pass the elements of array into function
+            if use_kwargs:
+                futures = [pool.submit(function, **a) for a in array[front_num:]]
+            else:
+                futures = [pool.submit(function, a) for a in array[front_num:]]
+            kwargs = {
+                'total': len(futures),
+                'unit': 'it',
+                'unit_scale': True,
+                'leave': True
+            }
+            #Print out the progress as tasks complete
+            for f in tqdm(as_completed(futures), **kwargs):
+                pass
+        out = []
+        #Get the results from the futures. 
+        for i, future in tqdm(enumerate(futures)):
+            try:
+                out.append(future.result())
+            except Exception as e:
+                out.append(e)
+        return front + out
+
     def getCheckpointFile(self, modelfile, iteration):
         return modelfile + '_' + str(iteration)
 

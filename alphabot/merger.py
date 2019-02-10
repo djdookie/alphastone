@@ -30,11 +30,11 @@ def loadTrainExamples(folder, filename):
         return trainExamples
 
 if __name__=="__main__":
-    trainExamples1 = loadTrainExamples('./temp/','best.pth.tar.examples')
+    trainExamples1 = loadTrainExamples('../remote/examples','0.pth.tar_2.examples')
     count = [len(x) for x in trainExamples1]
     print("Read", str(len(trainExamples1)), "iterations with", sum(count), "examples")
 
-    trainExamples2 = loadTrainExamples('./temp/','ragnar-checkpoint_0.pth.tar.examples')
+    trainExamples2 = loadTrainExamples('../remote/examples','0.pth.tar_0a.examples')
     count = [len(x) for x in trainExamples2]
     print("Read", str(len(trainExamples2)), "iterations with", sum(count), "examples")
 
@@ -42,7 +42,7 @@ if __name__=="__main__":
     trainExamplesMerged += trainExamples1
     trainExamplesMerged += trainExamples2
 
-    saveTrainExamples(trainExamplesMerged, './temp/','best.pth.tar.examples')
+    saveTrainExamples(trainExamplesMerged, '../remote/examples','0.pth.tar_3.examples')
     count = [len(x) for x in trainExamplesMerged]
     print("Saved", str(len(trainExamplesMerged)), "iterations with", sum(count), "examples")
 

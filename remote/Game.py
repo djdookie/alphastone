@@ -12,7 +12,7 @@ from hearthstone.enums import CardClass, CardSet
 from utils import UnhandledAction
 from fireplace.exceptions import GameOver
 from fireplace.deck import Deck
-
+from sklearn.preprocessing import label_binarize
 
 class YEET:
     """
@@ -85,6 +85,10 @@ class YEET:
             # else:
             cards_to_mulligan = random.sample(player.choice.cards, 0)
             player.choice.choose(*cards_to_mulligan)
+
+        # track played card list
+        self.players[0].playedcards = []
+        self.players[1].playedcards = []
 
         #game.player_to_start = game.current_player      # obsolete?
         self.game = game
@@ -168,6 +172,60 @@ class YEET:
             actions[19,1] = 1
         return actions
 
+    # def performAction(self, a, game_instance):
+    #     """
+    #     utility to perform an action tuple
+
+    #     Input:
+    #         a, a tuple representing index of action
+    #         game_instance: the game object (actual game or deepcopy for MCTS)
+
+    #     """
+    #     player = game_instance.current_player
+    #     if not game_instance.ended:
+    #         try:
+    #             if 0 <= a[0] <= 9:
+    #                 if player.hand[a[0]].requires_target():
+    #                     player.hand[a[0]].play(player.hand[a[0]].targets[a[1]])
+    #                 elif player.hand[a[0]].must_choose_one:
+    #                     player.hand[a[0]].play(choose=player.hand[a[0]].choose_targets[a[1]])
+    #                 else:
+    #                     player.hand[a[0]].play()
+    #             elif 10 <= a[0] <= 16:
+    #                 player.field[a[0]-10].attack(player.field[a[0]-10].attack_targets[a[1]])
+    #             elif a[0] == 17:
+    #                 if player.hero.power.requires_target():
+    #                     player.hero.power.use(player.hero.power.play_targets[a[1]])
+    #                 else:
+    #                     player.hero.power.use()
+    #             elif a[0] == 18:
+    #                 player.hero.attack(player.hero.attack_targets[a[1]])
+    #             elif a[0] == 19:
+    #                 player.game.end_turn()
+    #             elif a[0] == 20 and not player.choice:
+    #                 player.game.end_turn()
+    #             elif player.choice:
+    #                 player.choice.choose(player.choice.cards[a[1]])
+    #             else:
+    #                 raise UnhandledAction
+    #         except UnhandledAction as e:
+    #             # print("\r\nAttempted to take an inappropriate action!")
+    #             # print(a)
+    #             print(str(e))
+    #             raise
+    #         except InvalidAction as e:
+    #             # print("\r\nAttempted to do something I can't!")
+    #             # print(a)
+    #             # print(str(e))
+    #             player.game.end_turn()      # TODO: Find out why we often land here!!!
+    #         except IndexError:
+    #             try:
+    #                 player.game.end_turn()
+    #             except GameOver:
+    #                 pass
+    #         except GameOver:
+    #             pass
+
     def performAction(self, a, game_instance):
         """
         utility to perform an action tuple
@@ -180,23 +238,25 @@ class YEET:
         player = game_instance.current_player
         if not game_instance.ended:
             try:
-                if 0 <= a[0] <= 9:
+                if 0 <= a[0] <= 9:      # play card 1-10
                     if player.hand[a[0]].requires_target():
                         player.hand[a[0]].play(player.hand[a[0]].targets[a[1]])
                     elif player.hand[a[0]].must_choose_one:
                         player.hand[a[0]].play(choose=player.hand[a[0]].choose_targets[a[1]])
                     else:
                         player.hand[a[0]].play()
-                elif 10 <= a[0] <= 16:
+                    # save to played cards list for current player
+                    player.playedcards.append(player.hand[a[0]].id)
+                elif 10 <= a[0] <= 16:  # attack with minion 1-7
                     player.field[a[0]-10].attack(player.field[a[0]-10].attack_targets[a[1]])
-                elif a[0] == 17:
+                elif a[0] == 17:        # use hero power
                     if player.hero.power.requires_target():
                         player.hero.power.use(player.hero.power.play_targets[a[1]])
                     else:
                         player.hero.power.use()
-                elif a[0] == 18:
+                elif a[0] == 18:        # hero attack
                     player.hero.attack(player.hero.attack_targets[a[1]])
-                elif a[0] == 19:
+                elif a[0] == 19:        # end turn
                     player.game.end_turn()
                 elif a[0] == 20 and not player.choice:
                     player.game.end_turn()
@@ -442,7 +502,9 @@ class YEET:
         #     game_instance = self.game
 
         # s = np.zeros(273, dtype=np.int32)
-        s = np.zeros(278, dtype=np.float32)
+        # s = np.zeros(282, dtype=np.float32)
+        # s = np.zeros(2618, dtype=np.float32) # 282 + 160 + 112 + 112 + 480 + 480 + 496 + 496
+        s = np.zeros(2624, dtype=np.float32) # 282 + 160 + 112 + 112 + 480 + 480 + 496 + 496 + 6 for netsize
 
         p1 = game_instance.current_player
         p2 = p1.opponent
@@ -537,7 +599,7 @@ class YEET:
                 s[i + 9] = p1.hand[j].cost / 25
             i += 10
         
-        #273, # of crystals still available opponent
+        # number of crystals still available opponent
         s[273] = p2.mana / 10
         # number of player minions
         s[274] = len(p1.field) / 7
@@ -545,19 +607,69 @@ class YEET:
         s[275] = len(p2.field) / 7
         # number of player cards in hand
         s[276] = len(p1.hand) / 10
-        #274, turn
-        s[277] = game_instance.turn / 180     # normalize turn by maximal possible turn
+        # number of cards left in player deck
+        s[277] = len(p1.deck) / 30
+        # number of cards left in opponent deck
+        s[278] = len(p2.deck) / 30
+        # card advantage
+        s[279] = 1 if len(p1.hand) > len(p2.hand) else 0
+        # board advantage
+        s[280] = 1 if len(p1.field) > len(p2.field) else 0
+        # turn
+        s[281] = game_instance.turn / 180     # normalize turn by maximal possible turn
 
-        #274, card advantage player, then opponent
-        # i = 274
-        # s[i] = 0
+        i = 282
+        # hand cards player (10*16 = 160 bits; len(cardrepo) = 16)
+        if len(p1.hand) > 0:
+            p1hand_onehot = np.reshape(label_binarize([c.id for c in p1.hand], classes=self.cardrepo), -1)
+            for j in range(0, len(p1hand_onehot)):
+                s[i + j] = p1hand_onehot[j]          
 
-        #275, deck cards player, then opponent
+        i = 442
+        # board cards player (7*16 = 112 bits; len(cardrepo) = 16)  # TODO: could remove spells and weapons for minionrepo
+        if len(p1.field) > 0:
+            p1field_onehot = np.reshape(label_binarize([c.id for c in p1.field], classes=self.cardrepo), -1)
+            for j in range(0, len(p1field_onehot)):
+                s[i + j] = p1field_onehot[j]
 
-        # played cards player, then opponent
+        i = 554
+        # board cards opponent (7*16 = 112 bits; len(cardrepo) = 16)    # TODO: could remove spells and weapons for minionrepo
+        if len(p2.field) > 0:
+            p2field_onehot = np.reshape(label_binarize([c.id for c in p2.field], classes=self.cardrepo), -1)
+            for j in range(0, len(p2field_onehot)):
+                s[i + j] = p2field_onehot[j]
 
+        i = 666
+        # starting deck cards player, sorted (30*16 = 480 bits; len(cardrepo) = 16)      # TODO: could remove the coin for deckrepo
+        p1startingdeck = np.sort([c for c in p1.starting_deck])
+        if len(p1startingdeck) > 0:
+            p1startingdeck_onehot = np.reshape(label_binarize([c for c in p1startingdeck], classes=self.cardrepo), -1)
+            for j in range(0, len(p1startingdeck_onehot)):
+                s[i + j] = p1startingdeck_onehot[j]
 
-        # TODO: Normalize and one-hot encode data!!!
+        i = 1146
+        # cards left in player deck, sorted (30*16 = 480 bits; len(cardrepo) = 16)
+        p1deck = np.sort([c.id for c in p1.deck])
+        if len(p1deck) > 0:
+            p1deck_onehot = np.reshape(label_binarize([c for c in p1deck], classes=self.cardrepo), -1)
+            for j in range(0, len(p1deck_onehot)):
+                s[i + j] = p1deck_onehot[j]
+
+        i = 1626
+        # played cards player (31*16 = 496 bits; len(cardrepo) = 16)    # max playable cards are deck + coin
+        if len(p1.playedcards) > 0:
+            p1playedcards_onehot = np.reshape(label_binarize([c for c in p1.playedcards], classes=self.cardrepo), -1)
+            for j in range(0, len(p1playedcards_onehot)):
+                s[i + j] = p1playedcards_onehot[j]
+
+        i = 2122
+        # played cards opponent (31*16 = 496 bits; len(cardrepo) = 16)    # max playable cards are deck + coin
+        if len(p2.playedcards) > 0:
+            p2playedcards_onehot = np.reshape(label_binarize([c for c in p2.playedcards], classes=self.cardrepo), -1)
+            for j in range(0, len(p2playedcards_onehot)):
+                s[i + j] = p2playedcards_onehot[j]
+        
+        i = 2618
 
         return s
 
@@ -618,6 +730,8 @@ class YEET:
         """
         Return the basic AI rogue deck (from practice mode)
         """
+        # TODO: fireplace.cards.filter(name="Wisp") could help
+
         deck = []
 
         # Assassinate
@@ -668,3 +782,5 @@ class YEET:
 
         random.shuffle(deck)
         return deck
+
+    cardrepo = ['GAME_005', 'CS2_076', 'CS2_072', 'CS2_172', 'CS2_074', 'EX1_025', 'CS2_189', 'CS2_147', 'CS1_042', 'CS2_141', 'EX1_593', 'EX1_015', 'EX1_581', 'CS2_075', 'CS2_150', 'CS2_131']

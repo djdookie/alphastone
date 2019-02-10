@@ -109,7 +109,7 @@ class Arena():
                     activity = self.game.getActionInfo((action[0][0], action[1][0]), current_game)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action), current_game)
             else:
-                fireplace_logger.setLevel(logging.WARNING)                      # disable logging in MCTS
+                if verbose: fireplace_logger.setLevel(logging.WARNING)          # disable logging in MCTS
                 pi = players[curPlayer+1](self.game.getState(current_game))     # call partial function MCTS.getActionProb(currentState) for current active player
                 if verbose: fireplace_logger.setLevel(logging.DEBUG)            # reenable logging, if logging is activated
 
@@ -121,6 +121,7 @@ class Arena():
                 if verbose:
                     act = [action[0][0], action[1][0]]
                     activity = self.game.getActionInfo((action[0][0], action[1][0]), current_game)
+                    # print(current_game.current_player, current_game.current_player.playedcards)
                 next_state, curPlayer = self.game.getNextState(curPlayer, (action[0][0], action[1][0]), current_game)   # choose random action for real randomness, otherwise Player 1 has disadvantage because he is often picked as target=0
             if verbose:
                 # print("########## Action ", str(action[0][0]), str(action[1][0]))
