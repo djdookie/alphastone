@@ -4,10 +4,11 @@ from types import *
 import time
 # from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Pool
-import tqdm
+from tqdm import tqdm
 import logging
 from tensorboardX import SummaryWriter
 import sqlite3
+from utils.helper import *
 
 class Arena():
     """
@@ -182,9 +183,11 @@ class Arena():
         draws = 0
         #for _ in range(num):
         # with ProcessPoolExecutor(numThreads) as executor:
-        #     results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
-        with Pool(numThreads) as pool:
-            results = list(tqdm.tqdm(pool.imap(self.playGame, range(1, halfNum+1)), total=halfNum, desc='1st half'))
+        #     results = list(tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='1st half'))
+        # with Pool(numThreads) as pool:
+        #     results = list(tqdm(pool.imap(self.playGame, range(1, halfNum+1)), total=halfNum, desc='1st half'))
+
+        results = parallel_process(self.playGame, range(1, halfNum+1), workers=numThreads, desc='1st half')
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:
@@ -208,9 +211,11 @@ class Arena():
         
         #for _ in range(num):
         # with ProcessPoolExecutor(numThreads) as executor:
-        #     results = list(tqdm.tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
-        with Pool(numThreads) as pool:
-            results = list(tqdm.tqdm(pool.imap(self.playGame, range(halfNum+1, num+1)), total=halfNum, desc='2nd half'))
+        #     results = list(tqdm(executor.map(self.playGame, range(halfNum)), total=halfNum, desc='2nd half'))
+        # with Pool(numThreads) as pool:
+        #     results = list(tqdm(pool.imap(self.playGame, range(halfNum+1, num+1)), total=halfNum, desc='2nd half'))
+
+        results = parallel_process(self.playGame, range(halfNum+1, num+1), workers=numThreads, desc='2nd half')
 
         #gameResult = self.playGame(verbose=verbose)
         for gameResult in results:

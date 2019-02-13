@@ -8,17 +8,18 @@ from MCTS import MCTS
 import numpy as np
 from utils import Bar, AverageMeter
 from pickle import Pickler, Unpickler
+import pickle
 from random import shuffle
 import multiprocessing as mp
 from multiprocessing import current_process, Pool
-from multiprocessing.managers import BaseManager
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 import functools
+from utils.helper import *
 
 args = dotdict({
-    'numIters': 1000,
-    'numEps': 100,
+    'numIters': 100,
+    'numEps': 2,
     'tempThreshold': 15,    # degree of exploration in MCTS.getActionProb(). switch from temperature=1 to temperature=0 after this episode step
     'maxlenOfQueue': 200000,
     'numMCTSSims': 25,      # 25    # TODO: much more sims needed?
@@ -26,10 +27,8 @@ args = dotdict({
 
     'modelspath': './models/',
     'examplespath': './examples/',
-    'numThreads': psutil.cpu_count(),
+    'numThreads': 1 #psutil.cpu_count(),
 })
-
-class QueueManager(BaseManager): pass
 
 class Coach:
     """
@@ -131,7 +130,7 @@ class Coach:
                 #     for result in list(tqdm(pool.imap(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
                 #         iterationTrainExamples += result
 
-                for result in self.parallel_process(range(self.args.numEps), self.executeEpisode, n_jobs=self.args.numThreads, front_num=0):
+                for result in parallel_process(self.executeEpisode, range(self.args.numEps), workers=self.args.numThreads, desc='Self-play matches'):
                     iterationTrainExamples += result
 
                 # save the iteration examples to the history 
@@ -144,53 +143,6 @@ class Coach:
             # NB! the examples were collected using the model from the previous iteration, so (i-1)  
             self.saveTrainExamples(modelfile, i-1)
 
-    def parallel_process(self, array, function, n_jobs=16, use_kwargs=False, front_num=3):
-        """
-            A parallel version of the map function with a progress bar. 
-
-            Args:
-                array (array-like): An array to iterate over.
-                function (function): A python function to apply to the elements of array
-                n_jobs (int, default=16): The number of cores to use
-                use_kwargs (boolean, default=False): Whether to consider the elements of array as dictionaries of 
-                    keyword arguments to function 
-                front_num (int, default=3): The number of iterations to run serially before kicking off the parallel job. 
-                    Useful for catching bugs
-            Returns:
-                [function(array[0]), function(array[1]), ...]
-        """
-        #We run the first few iterations serially to catch bugs
-        front = []
-        if front_num > 0:
-            front = [function(**a) if use_kwargs else function(a) for a in array[:front_num]]
-        #If we set n_jobs to 1, just run a list comprehension. This is useful for benchmarking and debugging.
-        if n_jobs==1:
-            return front + [function(**a) if use_kwargs else function(a) for a in tqdm(array[front_num:])]
-        #Assemble the workers
-        with ProcessPoolExecutor(max_workers=n_jobs) as pool:
-            #Pass the elements of array into function
-            if use_kwargs:
-                futures = [pool.submit(function, **a) for a in array[front_num:]]
-            else:
-                futures = [pool.submit(function, a) for a in array[front_num:]]
-            kwargs = {
-                'total': len(futures),
-                'unit': 'it',
-                'unit_scale': True,
-                'leave': True
-            }
-            #Print out the progress as tasks complete
-            for f in tqdm(as_completed(futures), **kwargs):
-                pass
-        out = []
-        #Get the results from the futures. 
-        for i, future in tqdm(enumerate(futures)):
-            try:
-                out.append(future.result())
-            except Exception as e:
-                out.append(e)
-        return front + out
-
     def getCheckpointFile(self, modelfile, iteration):
         return modelfile + '_' + str(iteration)
 
@@ -200,24 +152,24 @@ class Coach:
             os.makedirs(folder)
         filename = os.path.join(folder, self.getCheckpointFile(modelfile, iteration) + ".examples")
         with open(filename, "wb+") as f:
-            Pickler(f).dump(self.trainExamplesHistory)
+            Pickler(f, protocol=pickle.HIGHEST_PROTOCOL).dump(self.trainExamplesHistory)
         f.closed
 
-    def loadTrainExamples(self):
-        modelFile = os.path.join(self.args.load_folder_file[0], self.args.load_folder_file[1])
-        examplesFile = modelFile+".examples"
-        if not os.path.isfile(examplesFile):
-            print(examplesFile)
-            r = input("File with trainExamples not found. Continue? [y|n]")
-            if r != "y":
-                sys.exit()
-        else:
-            print("File with trainExamples found. Read it.")
-            with open(examplesFile, "rb") as f:
-                self.trainExamplesHistory = Unpickler(f).load()
-            f.closed
-            # examples based on the model were already collected (loaded)
-            self.skipFirstSelfPlay = True
+    # def loadTrainExamples(self):
+    #     modelFile = os.path.join(self.args.load_folder_file[0], self.args.load_folder_file[1])
+    #     examplesFile = modelFile+".examples"
+    #     if not os.path.isfile(examplesFile):
+    #         print(examplesFile)
+    #         r = input("File with trainExamples not found. Continue? [y|n]")
+    #         if r != "y":
+    #             sys.exit()
+    #     else:
+    #         print("File with trainExamples found. Read it.")
+    #         with open(examplesFile, "rb") as f:
+    #             self.trainExamplesHistory = Unpickler(f).load()
+    #         f.closed
+    #         # examples based on the model were already collected (loaded)
+    #         self.skipFirstSelfPlay = True
 
     def list_files(self, directory, extension):
         return (f for f in os.listdir(directory) if f.endswith('.' + extension))
@@ -244,7 +196,7 @@ if __name__=="__main__":
         p.nice(5)
         mp.set_start_method('spawn')
 
-    # Set number of threads for OpenMP
+    # Set number of threads for OpenMP (CPU)
     os.environ["OMP_NUM_THREADS"] = "1"
 
     g = Game(is_basic=True)

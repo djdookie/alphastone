@@ -5,6 +5,7 @@ import numpy as np
 from utils import Bar, AverageMeter
 import time, os, sys
 from pickle import Pickler, Unpickler
+import pickle
 from random import shuffle
 #from multiprocessing import Pool, current_process
 #import threading as th
@@ -14,8 +15,9 @@ import multiprocessing as mp
 from multiprocessing import current_process, Pool
 from multiprocessing.managers import BaseManager
 #from concurrent.futures import ProcessPoolExecutor
-import tqdm
+from tqdm import tqdm
 import functools
+from utils.helper import *
 
 class QueueManager(BaseManager): pass
 
@@ -101,12 +103,14 @@ class Coach:
             if not self.skipFirstSelfPlay or i>1:
                 iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
  
-                with Pool(self.args.numThreads) as pool:
+                # with Pool(self.args.numThreads) as pool:
                     #self.mcts = MCTS(self.game, self.nnet, self.args)   # reset search tree => not needed because we get a new instance per process start
                     # Setup a list of processes that we want to run
-                    #results = list(tqdm.tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
-                    for result in list(tqdm.tqdm(pool.imap(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
-                        iterationTrainExamples += result
+                    #results = list(tqdm(executor.map(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches'))
+                    # for result in list(tqdm(pool.imap(self.executeEpisode, range(self.args.numEps)), total=self.args.numEps, desc='Self-play matches')):
+                    #     iterationTrainExamples += result
+                for result in parallel_process(self.executeEpisode, range(self.args.numEps), workers=self.args.numThreads, desc='Self-play matches'):
+                    iterationTrainExamples += result
 
                 #iterationTrainExamples = [r for r in results]
 
@@ -191,7 +195,7 @@ class Coach:
             os.makedirs(folder)
         filename = os.path.join(folder, self.getCheckpointFile(iteration)+".examples")
         with open(filename, "wb+") as f:
-            Pickler(f).dump(self.trainExamplesHistory)
+            Pickler(f, protocol=pickle.HIGHEST_PROTOCOL).dump(self.trainExamplesHistory)
         f.closed
 
     def loadTrainExamples(self):

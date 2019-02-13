@@ -28,7 +28,7 @@ class Client:
     #         os.makedirs(folder)
     #     filename = os.path.join(folder, self.getCheckpointFile(iteration)+".examples")
     #     with open(filename, "wb+") as f:
-    #         Pickler(f).dump(self.trainExamplesHistory)
+    #         Pickler(f, protocol=pickle.HIGHEST_PROTOCOL).dump(self.trainExamplesHistory)
     #     f.closed
 
     def loadTrainExamples(self):

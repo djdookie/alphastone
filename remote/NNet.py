@@ -5,6 +5,7 @@ import sys
 sys.path.append('../../')
 from utils import Bar, AverageMeter
 from dotted_dict import DottedDict as dotdict
+import pickle
 
 import torch
 import torch.optim as optim
@@ -172,7 +173,7 @@ class NNetWrapper():
         state: np array with state
         """
         # timing
-        start = time.time()
+        # start = time.time()
 
         # preparing input
         state = torch.FloatTensor(state.astype(np.float64)).unsqueeze(0).unsqueeze(0)
@@ -200,11 +201,11 @@ class NNetWrapper():
         if not os.path.exists(folder):
             print("Checkpoint Directory does not exist! Making directory {}".format(folder))
             os.mkdir(folder)
-        else:
-            print("Checkpoint Directory exists! ")
+        # else:
+        #     print("Checkpoint Directory exists! ")
         torch.save({
             'state_dict' : self.nnet.state_dict(),
-        }, filepath)
+        }, filepath, pickle_protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98

@@ -1,5 +1,6 @@
 import os, sys
 from pickle import Pickler, Unpickler
+import pickle
 
 
 def saveTrainExamples(trainExamples, folder, filename):
@@ -11,7 +12,7 @@ def saveTrainExamples(trainExamples, folder, filename):
         
     #filename = os.path.join(folder, self.getCheckpointFile(iteration)+".examples")
     with open(filepath, "wb+") as f:
-        Pickler(f).dump(trainExamples)
+        Pickler(f, protocol=pickle.HIGHEST_PROTOCOL).dump(trainExamples)
     f.closed
 
 def loadTrainExamples(folder, filename):
@@ -34,7 +35,7 @@ if __name__=="__main__":
     count = [len(x) for x in trainExamples1]
     print("Read", str(len(trainExamples1)), "iterations with", sum(count), "examples")
 
-    trainExamples2 = loadTrainExamples('../remote/examples','0.pth.tar_0a.examples')
+    trainExamples2 = loadTrainExamples('../remote/examples','0.pth.tar_3.examples')
     count = [len(x) for x in trainExamples2]
     print("Read", str(len(trainExamples2)), "iterations with", sum(count), "examples")
 
@@ -42,7 +43,7 @@ if __name__=="__main__":
     trainExamplesMerged += trainExamples1
     trainExamplesMerged += trainExamples2
 
-    saveTrainExamples(trainExamplesMerged, '../remote/examples','0.pth.tar_3.examples')
+    saveTrainExamples(trainExamplesMerged, '../remote/examples','0.pth.tar_5.examples')
     count = [len(x) for x in trainExamplesMerged]
     print("Saved", str(len(trainExamplesMerged)), "iterations with", sum(count), "examples")
 

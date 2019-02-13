@@ -5,6 +5,7 @@ import sys
 sys.path.append('../../')
 from utils import Bar, AverageMeter
 from dotted_dict import DottedDict as dotdict
+import pickle
 
 import torch
 import torch.optim as optim
@@ -21,7 +22,7 @@ args = dotdict({
     # 'dropout': 0.3,
     'epochs': 10,       # best 25
     'batch_size': 128,  # best 128
-    'cuda': False,
+    'cuda': True,
     # 'num_channels': 512,
 })
 
@@ -106,7 +107,7 @@ class NNetWrapper():
         state: np array with state
         """
         # timing
-        start = time.time()
+        # start = time.time()
 
         # preparing input
         state = torch.FloatTensor(state.astype(np.float64)).unsqueeze(0).unsqueeze(0)
@@ -119,7 +120,7 @@ class NNetWrapper():
         with torch.no_grad():
             pi, v = self.nnet(state)
 
-        #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
+        # print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0]
 
     def loss_pi(self, targets, outputs):
@@ -138,7 +139,7 @@ class NNetWrapper():
             print("Checkpoint Directory exists! ")
         torch.save({
             'state_dict' : self.nnet.state_dict(),
-        }, filepath)
+        }, filepath, pickle_protocol=pickle.HIGHEST_PROTOCOL)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98

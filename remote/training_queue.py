@@ -28,7 +28,7 @@ class TrainingClient:
     #         os.makedirs(folder)
     #     filename = os.path.join(folder, "temp.pth.tar")
     #     with open(filename, "wb+") as f:
-    #         Pickler(f).dump(file)
+    #         Pickler(f, protocol=pickle.HIGHEST_PROTOCOL).dump(file)
     #     f.closed
 
 if __name__=="__main__":
