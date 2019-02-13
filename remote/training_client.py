@@ -1,4 +1,3 @@
-from multiprocessing.managers import BaseManager
 from pickle import Pickler, Unpickler, loads
 from NNet import NNetWrapper as nn
 from dotted_dict import DottedDict as dotdict
@@ -12,12 +11,11 @@ from tensorboardX import SummaryWriter
 args = dotdict({
     'modelspath': './models/',
     'examplespath': './examples/',
-    'epochs': 30,       # best 25,
+    'epochs': 100,       # best 25,
     'validation': True,
-    'early_stopping': False
+    'early_stopping': False,
+    'save_model': True
 })
-
-class QueueManager(BaseManager): pass
 
 class TrainingClient:
     def __init__(self):
@@ -27,7 +25,7 @@ class TrainingClient:
     def loadTrainExamples(self):
         # modelFile = os.path.join(args.examplespath, 'best.pth.tar')
         # examplesFile = modelFile+".examples"
-        examplesFile = os.path.join(args.examplespath, '0.pth.tar_3.examples')
+        examplesFile = os.path.join(args.examplespath, '0.pth.tar_6.examples')
         if not os.path.isfile(examplesFile):
             print(examplesFile)
             r = input("File with trainExamples not found. Continue? [y|n]")
@@ -60,19 +58,18 @@ if __name__=="__main__":
     # configure logger
     #configure("logs/run-1", flush_secs=5)
     if args.validation:
-        training_writer = SummaryWriter('runs/training-32')
-        test_writer = SummaryWriter('runs/test-32')
-        dif_writer = SummaryWriter('runs/dif-32')
+        training_writer = SummaryWriter('runs/training-39')
+        test_writer = SummaryWriter('runs/test-39')
+        dif_writer = SummaryWriter('runs/dif-39')
         max_loss_pi_dif = float('-inf')
+        # Split training and test data
+        examples_train, examples_test = train_test_split(trainExamples, test_size=0.20)
 
     # train neural network
     for epoch in range(args.epochs):
         print('EPOCH ::: ' + str(epoch+1))
 
         if args.validation:
-            # Train on separate training and test data
-            examples_train, examples_test = train_test_split(trainExamples, test_size=0.20)
-
             loss_pi_train, loss_v_train = client.nnet.train(examples_train)
             # data grouping by `slash`
             training_writer.add_scalar('loss_pi', loss_pi_train, epoch+1)
@@ -96,8 +93,12 @@ if __name__=="__main__":
         else:
             # Train normally on full data
             client.nnet.train(trainExamples)
+            # TODO: We could also save only training progress losses for plotting
 
-    print("Save new trained neural network")
-    client.nnet.save_checkpoint(folder=args.modelspath, filename='0-32.pth.tar')
+        # Save trained neural network after each epoch
+        if args.save_model:
+            print("Saving trained neural network")
+            # client.nnet.save_checkpoint(folder=args.modelspath, filename='0-38.pth.tar')
+            client.nnet.save_checkpoint(folder=args.modelspath, filename=f'0-{epoch+1}.pth.tar')
 
-    # print('exiting...')
+    # TODO: Final model saving needed in case of early stopping?
